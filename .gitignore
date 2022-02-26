@@ -1,0 +1,17 @@
+/data/
+/py-earth/
+.Rproj.user
+/notebooks/.ipynb_checkpoints/
+/exp_analysis/fastsurfer/input/patients_info.txt
+/exp_analysis/fastsurfer/logs/
+/exp_analysis/fastsurfer/output/
+/.idea
+/exp_analysis/r-scripts/r-scripts.Rproj
+/exp_analysis/r-scripts/.Rhistory
+/exp_analysis/r-scripts/.RData
+/output/
+/zennit-example/
+/clinica/
+/clinicadl/
+/debug.log
+/commands.txt
