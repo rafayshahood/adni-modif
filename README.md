@@ -68,9 +68,8 @@ training/evaluation and load specific dataset
 
 ## PPMI dataset
 - Download imaging data through adni website. The process is similar to available datasets.
-When the imaging data are added to collection download the collection metadata in tabular form
+When the imaging data are added to collection, download the collection metadata in tabular form
 (see instructions for the NIFD dataset)
-- 
 
 ## Additional info and known issues
 - delete files: `find . -name '*pattern*' -exec rm {} \;`
