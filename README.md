@@ -27,7 +27,7 @@ The following image visualizes the whole architecture:
 - (planned) MIRIAD, Access: https://www.ucl.ac.uk/drc/research/research-methods/minimal-interval-resonance-imaging-alzheimers-disease-miriad
 - (planned) HABS, Access: will follow
 
-## Set-up Instructions (Stage 1 development):
+## Set-up Instructions:
 - `sudo apt-get install dcm2niix`
 - install ANTs: https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS
 - `pip3 install lightly openpyxl mlxtend zennit nibabel`
@@ -130,8 +130,8 @@ appropriate places:
 
 
 ## Next steps
-- Oasis3
-- PPMI
+- Data Quality
+- Visualization of filters
 - Skull stripping
 
 
