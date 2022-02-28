@@ -48,12 +48,14 @@ nnclr:
       - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/nifd/CAPS/'
       - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/adni/data/adni3/CAPS/'
       - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/aibl/CAPS/'
+      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/ppmi/CAPS/'
 
     # A list of the paths to the TSV files containing targets/labels:
     - info_data_files:
       - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/nifd/info_data.tsv'
       - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/adni/info_data.tsv'
       - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/aibl/info_data.tsv'
+      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/ppmi/info_data.tsv'
 
 
 # Setting for the linear evaluation of the NNCLR model:
@@ -69,12 +71,14 @@ linear_eval:
       - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/nifd/CAPS/'
       - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/adni/data/adni3/CAPS/'
       - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/aibl/CAPS/'
+      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/ppmi/CAPS/'
 
     # A list of the paths to the TSV files containing targets/labels:
     - info_data_files:
       - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/nifd/info_data.tsv'
       - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/adni/info_data.tsv'
       - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/aibl/info_data.tsv'
+      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/ppmi/info_data.tsv'
   eval_labels:
     - CN
     - AD

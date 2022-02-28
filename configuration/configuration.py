@@ -5,7 +5,7 @@ import torch
 import yaml
 from torch.backends import cudnn
 
-from data_processing.data_loader import Mode
+from data_processing.utils import Mode
 
 
 class NNCLRConfiguration:
@@ -58,8 +58,10 @@ class Configuration:
 
             # --- data ---
             data = self.get_data(settings, mode)
-            self.caps_directories = data['caps_directories']
-            self.info_data_files = data['info_data_files']
+            self.caps_directories = data[0]['caps_directories']
+            self.info_data_files = data[1]['info_data_files']
+
+            data = settings['data']
             self.slices_range = data['slices_range']
             self.slices_per_view = data['slices_per_view']
             self.features_out = data['features_out']

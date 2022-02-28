@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,6 +8,15 @@ from matplotlib import pyplot
 
 from mlxtend.plotting import plot_confusion_matrix
 from sklearn.metrics import roc_curve, roc_auc_score
+
+
+class Mode(str, Enum):
+    """"
+    A helper class to differentiate between different stages: training and evaluation
+    """
+    training = 'training'
+    evaluation = 'evaluation'
+    independent_evaluation = 'independent_evaluation'
 
 
 def plot_density(data, filename):

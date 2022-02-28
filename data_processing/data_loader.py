@@ -12,15 +12,7 @@ from torch.utils.data import Subset
 from configuration.configuration import Configuration
 from data_processing.data_provider import DataProviderSSL
 from data_processing.data_reader import DataReader
-
-
-class Mode(str, Enum):
-    """"
-    A helper class to differentiate between different stages: training and evaluation
-    """
-    training = 'training'
-    evaluation = 'evaluation'
-    independent_evaluation = 'independent_evaluation'
+from data_processing.utils import Mode
 
 
 class DataLoaderSSL:

@@ -14,9 +14,10 @@ from torch import nn
 from torch.backends import cudnn
 
 from configuration.configuration import Configuration
-from data_processing.data_loader import DataLoaderSSL, Mode
+from data_processing.data_loader import DataLoaderSSL
 from data_processing.data_reader import DataReader
 from models.nnclr.nnclr import NNCLR
+from data_processing.utils import Mode
 
 # Logging information will be saved in a file 'debug.log'
 logging.basicConfig(
