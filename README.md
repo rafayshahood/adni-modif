@@ -19,9 +19,9 @@ The following image visualizes the whole architecture:
 - (in use) ADNI. Alzheimer's Disease Neuroimaging Initiatve
 - (in use) NIFD. Frontotemporal Lobar Degeneration
 - (in use) AIBL. Australian Imaging, Biomarkers and Lifestyle
-- (planned) OASIS. Access: https://www.oasis-brains.org/#data
+- (in use) OASIS. Access: https://www.oasis-brains.org/#data
 - (planned) ABVIB. Aging Brain: Vasculature, Ischemia, and Behaviour
-- (planned) PPMI. Parkinson's Progression Markers Initiative
+- (in use) PPMI. Parkinson's Progression Markers Initiative
 - (planned) GCP. Brain Genomics Superstruct Project
 - (planned) The A4 Study. Anti-Amyloid Treatment in Asymptomatic Alzheimer's
 - (planned) MIRIAD, Access: https://www.ucl.ac.uk/drc/research/research-methods/minimal-interval-resonance-imaging-alzheimers-disease-miriad
@@ -45,7 +45,7 @@ See also https://aramislab.paris.inria.fr/clinica/docs/public/latest/Pipelines/T
 for more details
 - extract 2D slices: 
 `clinicadl extract slice CAPS_DIRECTORY t1-linear --slice_mode single --slice_direction 1 --discarded_slices 50`
-- create a file that contains all required information about patients: `clinica iotools merge-tsv BIDS info_data.tsv
+- create a file that contains all required information about patients: `clinica iotools merge-tsv BIDS info_data.tsv`
 
 ## How to?
 - When data are prepared the actual training of models and their evaluation can begin
