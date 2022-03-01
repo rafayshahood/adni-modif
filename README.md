@@ -27,6 +27,8 @@ The following image visualizes the whole architecture:
 - (planned) MIRIAD, Access: https://www.ucl.ac.uk/drc/research/research-methods/minimal-interval-resonance-imaging-alzheimers-disease-miriad
 - (planned) HABS, Access: will follow
 
+See also /data_dzne_archiv2/Studien/ClinicNET/data/
+
 ## Set-up Instructions:
 - `sudo apt-get install dcm2niix`
 - install ANTs: https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS

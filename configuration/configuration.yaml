@@ -45,17 +45,17 @@ nnclr:
   data:
     # A list of the paths to the CAPS directories:
     - caps_directories:
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/nifd/CAPS/'
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/adni/data/adni3/CAPS/'
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/aibl/CAPS/'
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/ppmi/CAPS/'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/nifd/CAPS/'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/adni/CAPS/'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/aibl/CAPS/'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/ppmi/CAPS/'
 
     # A list of the paths to the TSV files containing targets/labels:
     - info_data_files:
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/nifd/info_data.tsv'
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/adni/info_data.tsv'
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/aibl/info_data.tsv'
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/ppmi/info_data.tsv'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/nifd/info_data.tsv'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/adni/info_data.tsv'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/aibl/info_data.tsv'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/ppmi/info_data.tsv'
 
 
 # Setting for the linear evaluation of the NNCLR model:
@@ -68,17 +68,17 @@ linear_eval:
   data:
     # A list of the paths to the CAPS directories:
     - caps_directories:
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/nifd/CAPS/'
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/adni/data/adni3/CAPS/'
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/aibl/CAPS/'
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/ppmi/CAPS/'
+        - '/data_dzne_archiv2/Studien/ClinicNET/data/nifd/CAPS/'
+        - '/data_dzne_archiv2/Studien/ClinicNET/data/adni/CAPS/'
+        - '/data_dzne_archiv2/Studien/ClinicNET/data/aibl/CAPS/'
+        - '/data_dzne_archiv2/Studien/ClinicNET/data/ppmi/CAPS/'
 
     # A list of the paths to the TSV files containing targets/labels:
     - info_data_files:
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/nifd/info_data.tsv'
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/adni/info_data.tsv'
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/aibl/info_data.tsv'
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/ppmi/info_data.tsv'
+        - '/data_dzne_archiv2/Studien/ClinicNET/data/nifd/info_data.tsv'
+        - '/data_dzne_archiv2/Studien/ClinicNET/data/adni/info_data.tsv'
+        - '/data_dzne_archiv2/Studien/ClinicNET/data/aibl/info_data.tsv'
+        - '/data_dzne_archiv2/Studien/ClinicNET/data/ppmi/info_data.tsv'
   eval_labels:
     - CN
     - AD
@@ -93,10 +93,10 @@ independent_linear_eval:
   data:
     # A list of the paths to the CAPS directories:
     - caps_directories:
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/oasis/CAPS/'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/oasis/CAPS/'
     # A list of the paths to the TSV files containing targets/labels:
     - info_data_files:
-      - '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/data/oasis/info_data.tsv'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/oasis/info_data.tsv'
   eval_labels:
     - CN
     - AD
