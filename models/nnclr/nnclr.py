@@ -15,9 +15,9 @@ class NNCLR(nn.Module):
     NNCRL model
     """
     def __init__(self, backbone: nn.Sequential,
-                 num_ftrs: int = 1792,
-                 proj_hidden_dim: int = 1792,
-                 pred_hidden_dim: int = 1792,
+                 num_ftrs: int = 1280,
+                 proj_hidden_dim: int = 1280,
+                 pred_hidden_dim: int = 1280,
                  out_dim: int = 512):
         super().__init__()
 

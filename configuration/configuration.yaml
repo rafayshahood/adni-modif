@@ -1,5 +1,5 @@
 # General settings
-seed: 20
+seed: 21
 dry_run: False  # used for testing purposes; if True, then only one iteration is performed
 
 # Data settings:
@@ -7,6 +7,7 @@ data:
   slices_range: 100
   slices_per_view: 3  # cannot be changed; depends on the architecture input
   features_out: '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/output/features/nifd_adni_aibl'
+  quality_check: True
   diagnoses_info:
     valid_diagnoses:
       - CON
@@ -21,7 +22,7 @@ data:
       - SMC
       - AD Dementia
       - Cognitively normal
-      - PASS # a dummy label (for data that is not used for linear evaluation, e.g. the PPMI dataset)
+      - PPMI # a dummy label for PPMI dataset (for data that is not used for linear evaluation)
     control_labels:
       - CON
       - CN
@@ -41,19 +42,19 @@ nnclr:
   checkpoint: '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/output/checkpoints/nnclr.ckpt'
   epochs: 1000
   save_nepoch: 100  # a model will be saved every nth epoch
-  batch_size: 74
+  batch_size: 128
   data:
     # A list of the paths to the CAPS directories:
     - caps_directories:
       - '/data_dzne_archiv2/Studien/ClinicNET/data/nifd/CAPS/'
-      - '/data_dzne_archiv2/Studien/ClinicNET/data/adni/CAPS/'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/adni3/CAPS/'
       - '/data_dzne_archiv2/Studien/ClinicNET/data/aibl/CAPS/'
       - '/data_dzne_archiv2/Studien/ClinicNET/data/ppmi/CAPS/'
 
     # A list of the paths to the TSV files containing targets/labels:
     - info_data_files:
       - '/data_dzne_archiv2/Studien/ClinicNET/data/nifd/info_data.tsv'
-      - '/data_dzne_archiv2/Studien/ClinicNET/data/adni/info_data.tsv'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/adni3/info_data.tsv'
       - '/data_dzne_archiv2/Studien/ClinicNET/data/aibl/info_data.tsv'
       - '/data_dzne_archiv2/Studien/ClinicNET/data/ppmi/info_data.tsv'
 
@@ -65,20 +66,6 @@ linear_eval:
   batch_size: 32
   replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis
   replicas_extraction: 1  # extract # replicas_extraction random slices from each sample
-  data:
-    # A list of the paths to the CAPS directories:
-    - caps_directories:
-        - '/data_dzne_archiv2/Studien/ClinicNET/data/nifd/CAPS/'
-        - '/data_dzne_archiv2/Studien/ClinicNET/data/adni/CAPS/'
-        - '/data_dzne_archiv2/Studien/ClinicNET/data/aibl/CAPS/'
-        - '/data_dzne_archiv2/Studien/ClinicNET/data/ppmi/CAPS/'
-
-    # A list of the paths to the TSV files containing targets/labels:
-    - info_data_files:
-        - '/data_dzne_archiv2/Studien/ClinicNET/data/nifd/info_data.tsv'
-        - '/data_dzne_archiv2/Studien/ClinicNET/data/adni/info_data.tsv'
-        - '/data_dzne_archiv2/Studien/ClinicNET/data/aibl/info_data.tsv'
-        - '/data_dzne_archiv2/Studien/ClinicNET/data/ppmi/info_data.tsv'
   eval_labels:
     - CN
     - AD

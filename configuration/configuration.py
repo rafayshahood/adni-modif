@@ -66,6 +66,7 @@ class Configuration:
             self.slices_per_view = data['slices_per_view']
             self.features_out = data['features_out']
             self.diagnoses_info = data['diagnoses_info']
+            self.quality_check = data['quality_check']
 
             # --- NNCLR ---
             self.nnclr_conf = NNCLRConfiguration(settings['nnclr'])

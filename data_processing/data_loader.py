@@ -71,7 +71,7 @@ class DataLoaderSSL:
         """
 
         # Assure that the split is always the same
-        self.configuration.set_seeds(10)
+        self.configuration.set_seeds(145794547)
 
         patients = self.data.data['patient'].tolist()  # A list of patient IDs
 
@@ -104,9 +104,11 @@ class DataLoaderSSL:
         logging.info("Number of samples in training set: {}".format(len(train_idx)))
         values = [diagnoses[i] for i in train_idx]
         logging.info("Counts: {}".format(dict(zip(list(values), [list(values).count(i) for i in list(values)]))))
-        logging.info("Number of samples in evaluation set: {}".format(len(eval_idx)))
-        values = [diagnoses[i] for i in eval_idx]
-        logging.info("Counts: {}".format(dict(zip(list(values), [list(values).count(i) for i in list(values)]))))
+
+        if self.mode == Mode.evaluation:
+            logging.info("Number of samples in evaluation set: {}".format(len(eval_idx)))
+            values = [diagnoses[i] for i in eval_idx]
+            logging.info("Counts: {}".format(dict(zip(list(values), [list(values).count(i) for i in list(values)]))))
 
         # Create a dataset for accessing samples:
         dataset = DataProviderSSL(self.data.data['file'].tolist(), targets, diagnoses, self.configuration.slices_range,
@@ -134,20 +136,21 @@ class DataLoaderSSL:
             # During evaluation another set of targets can be used:
             train_dataset = self.filter_data(train_dataset, diagnoses)
             eval_dataset = self.filter_data(eval_dataset, diagnoses)
-        else:
+
             # Log the mapping between a diagnosis (str) and its encoded value (int):
             unique_targets = list(OrderedDict.fromkeys(targets))
             unique_diagnoses = list(OrderedDict.fromkeys(diagnoses))
             for i in range(len(unique_targets)):
                 logging.info("{} is encoded as {}".format(unique_diagnoses[i], unique_targets[i]))
 
-        # Data may be unbalanced. Calculate weights for the loss function:
-        y = np.asarray([train_dataset.dataset.targets[i] for i in train_dataset.indices])
-        self.class_weights = class_weight.compute_class_weight(class_weight='balanced', classes=np.unique(y), y=y)
+            # Data may be unbalanced. Calculate weights for the loss function:
+            y = np.asarray([train_dataset.dataset.targets[i] for i in train_dataset.indices])
+            self.class_weights = class_weight.compute_class_weight(class_weight='balanced', classes=np.unique(y),
+                                                                   y=y)
 
-        # Get the number of classes:
-        self.classes = len(set([train_dataset.dataset.targets[i] for i in train_dataset.indices]))
-        logging.info("# classes: {}".format(self.classes))
+            # Get the number of classes:
+            self.classes = len(set([train_dataset.dataset.targets[i] for i in train_dataset.indices]))
+            logging.info("# classes: {}".format(self.classes))
 
         # Finally create data loaders that will be used during training/evaluation/feature extraction:
         self.train_loader = torch_data.DataLoader(train_dataset,

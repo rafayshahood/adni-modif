@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from typing import List
 
 import numpy as np
@@ -11,12 +12,15 @@ class DataReader:
     Parses paths to files, saves ids of patients and their diagnoses.
     """
 
-    def __init__(self, caps_directories: List[str], info_data: List[str], diagnoses_info: List[str]) -> None:
+    def __init__(self, caps_directories: List[str], info_data: List[str], diagnoses_info: List[str],
+                 quality_check: bool) -> None:
         """
         Initialize with all required attributes.
         :param caps_directories: CAPS directory produced by the clinica library
         :param info_data: tabular data containing information about patients and their diagnosis
+        :param quality_check: if True then samples will filtered based on MMSE values
         """
+        self.quality_check = quality_check
         self.diagnoses_info = diagnoses_info
         self.data = self.get_files_and_labels(caps_directories, info_data)
 
@@ -57,6 +61,62 @@ class DataReader:
         d = {'participant_id': subjects_list, 'session_id': sessions_list, 'file': path_file_names_list}
         return pd.DataFrame(data=d)
 
+    def _apply_filter(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Removes samples that are above/below of 1 SD of the mean of MMSE.
+        :param data: pd.DataFrame
+        :return: filtered pd.DataFrame
+        """
+        data["mean"] = data[["diagnosis", "mmse"]].groupby('diagnosis').transform("mean")
+        data["std"] = data[["diagnosis", "mmse"]].groupby('diagnosis').transform("std")
+        data["threshold_pos"] = data["mean"] + data["std"]
+        data["threshold_neg"] = data["mean"] - data["std"]
+        data = data.dropna(subset=['mmse'])
+
+        if 'NIFD' in data['participant_id'][0]:
+            logging.info("Processing NIFD ...")
+            # drop 'CN' samples where MMSE < (mean + 1 std)
+            data = data[~((data["diagnosis"] == 'CN') & (data["mmse"] < data["threshold_neg"]))]
+
+            # drop 'FTD' samples where MMSE > (mean + 1 std)
+            data = data[~((data["diagnosis"] != 'CN') & (data["mmse"] > data["threshold_pos"]))]
+
+        elif 'ADNI' in data['participant_id'][0] or 'AIBL' in data['participant_id'][0]:
+            logging.info("Processing ADNI/AIBL ...")
+            # drop 'CN' samples where MMSE < (mean + 1 std)
+            data = data[~((data["diagnosis"] == 'CN') & (data["mmse"] < data["threshold_neg"]))]
+
+            # drop 'MCI' samples where MMSE > (mean + 1 std)
+            data = data[~((data["diagnosis"] == 'MCI') & (data["mmse"] > data["threshold_pos"]))]
+            data = data[~((data["diagnosis"] == 'MCI') & (data["mmse"] < data["threshold_neg"]))]
+
+            # drop 'AD' samples where MMSE > (mean + 1 std)
+            data = data[~((data["diagnosis"] == 'AD') & (data["mmse"] > data["threshold_pos"]))]
+        else:
+            logging.warning("Dataset {} is not relevant for data quality.".format(
+                " ".join(re.findall("[a-zA-Z]+", data['participant_id'][0])).split(' ')[1]))
+
+        return data
+
+    def filter_on_quality(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Filters samples based on MMSE values.
+        :param data: pd.DataFrame
+        :return: filtered pd.DataFrame
+        """
+        if 'MMS' in data.columns:
+            data.rename(columns={"MMS": "mmse"}, errors="raise", inplace=True)
+        elif 'MMSE' in data.columns:
+            data.rename(columns={"MMSE": "mmse"}, errors="raise", inplace=True)
+        elif 'mmse' in data.columns:
+            pass
+        else:
+            logging.warning("Data quality will not be performed for the dataset {}.".format(
+                " ".join(re.findall("[a-zA-Z]+", data['participant_id'][0])).split(' ')[1]))
+            return data
+
+        return self._apply_filter(data)
+
     def read_info_data(self, info_data_list: List[str]) -> pd.DataFrame:
         """
         Read the information about available MRI scans in the TSV files.
@@ -67,12 +127,16 @@ class DataReader:
         cols_to_read = ["participant_id", "session_id", "diagnosis"]
         df_list = []
         for info_data in info_data_list:
-            df_list.append(pd.read_csv(info_data, sep="\t", usecols=cols_to_read))
+            info_data = pd.read_csv(info_data, sep="\t")
+            info_data.loc[info_data['diagnosis'].isin(self.diagnoses_info['control_labels']), 'diagnosis'] = "CN"
+            info_data.loc[info_data['diagnosis'].isin(self.diagnoses_info['ad_labels']), 'diagnosis'] = "AD"
+            info_data = info_data[info_data['diagnosis'].isin(self.diagnoses_info['valid_diagnoses'])]
+            if self.quality_check:
+                info_data = self.filter_on_quality(info_data)
+                info_data = info_data[cols_to_read]
+            df_list.append(info_data)
         data = pd.concat(df_list)
         data = data.dropna()
-        data.loc[data['diagnosis'].isin(self.diagnoses_info['control_labels']), 'diagnosis'] = "CN"
-        data.loc[data['diagnosis'].isin(self.diagnoses_info['ad_labels']), 'diagnosis'] = "AD"
-        data = data[data['diagnosis'].isin(self.diagnoses_info['valid_diagnoses'])]
         if self.diagnoses_info['merge_ftd']:
             data.loc[data['diagnosis'].isin(self.diagnoses_info['ftd_labels']), 'diagnosis'] = "FTD"
         assert ((data.groupby(['participant_id', 'session_id']).count().reset_index()["diagnosis"] == 1) == True).all()
@@ -103,8 +167,6 @@ class DataReader:
             patients.append(row["participant_id"])
             diagnoses.append(row["diagnosis"])
         logging.info("Total number of samples: {}".format(len(diagnoses)))
-        logging.info("Control subjects: {}".format(diagnoses.count("CN")))
-        logging.info("Non-Control subjects: {}".format(len(diagnoses) - diagnoses.count("CN")))
         logging.info("Counts: {}".format(dict(
             zip(list(diagnoses), [list(diagnoses).count(i) for i in list(diagnoses)]))))
 

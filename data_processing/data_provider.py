@@ -63,8 +63,14 @@ class DataProviderSSL(Dataset):
 
         # apply transformations
         if self.mode == "training":
+            if random.random() > 0.5:
+                view_two = view_one.__deepcopy__()
+            rnd_resizedcrop = transforms.RandomResizedCrop(size=(view_one.shape[1], view_one.shape[2]),
+                                                           scale=(0.08, 1.0),
+                                                           ratio=(0.75, 1.3333333333333333),
+                                                           interpolation=transforms.InterpolationMode.BILINEAR)
             rnd_erase = transforms.RandomErasing()
-            transform = transforms.Compose([rnd_erase])
+            transform = transforms.Compose([rnd_resizedcrop, rnd_erase])
             view_one = transform(view_one)
             view_two = transform(view_two)
 
