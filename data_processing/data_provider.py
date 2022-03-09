@@ -64,7 +64,9 @@ class DataProviderSSL(Dataset):
         # apply transformations
         if self.mode == "training":
             if random.random() > 0.5:
-                view_two = view_one.__deepcopy__()
+                view_two = slice_data[:, reference_point - self.slices_per_view:reference_point, :]
+                view_two = torch.swapaxes(view_two, 0, 1)
+
             rnd_resizedcrop = transforms.RandomResizedCrop(size=(view_one.shape[1], view_one.shape[2]),
                                                            scale=(0.08, 1.0),
                                                            ratio=(0.75, 1.3333333333333333),

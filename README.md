@@ -129,16 +129,8 @@ appropriate places:
 - Pre-trained NNCLR model: https://drive.google.com/file/d/1r76tJ6uLnhRIfho_2maPL7YsSsd3pYNx/view?usp=sharing
 - Pre-trained NNCLR model + Top Linear layer: https://drive.google.com/file/d/1SgHFgna0SL2cbEW_N9hTTmpJoafJCwGD/view?usp=sharing
 
-
-## Next steps
-- Data Quality
-- Visualization of filters
-- Skull stripping
-
-
-
-
-
+## Filter weights
+![Filter weights](./images/filter_weights_3.png)
 
 
 ## References:
