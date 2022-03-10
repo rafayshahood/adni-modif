@@ -2,7 +2,7 @@
 
 Explainable Differential Diagnosis of Dementia using Self-supervised Learning.
 The proposed method is based on Nearest-Neighbor Contrastive Learning of Visual
-Representations (NNCLR) [1] using EfficientNET-B4 [2].
+Representations (NNCLR) [1] using EfficientNET-B0 [2].
 
 The following image visualizes the whole architecture:
 
