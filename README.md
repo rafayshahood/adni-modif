@@ -130,8 +130,8 @@ appropriate places:
 - Pre-trained NNCLR model + Top Linear layer: https://drive.google.com/file/d/1SgHFgna0SL2cbEW_N9hTTmpJoafJCwGD/view?usp=sharing
 
 ## Filter weights
-Visualization of filters of the Conv2D layer from the 6th Mobile Inverted Bottleneck and
-1st sequential block: `Conv2d(192, 1152, kernel_size=(1, 1), stride=(1, 1), bias=False)`
+Visualization of filters of the Conv2D layer from the 6th Mobile Inverted Bottleneck (https://paperswithcode.com/method/inverted-residual-block) and
+1st sequential block with the non-default `groups` parameter (https://iksinc.online/2020/05/10/groups-parameter-of-the-convolution-layer/) : `Conv2d(192, 1152, kernel_size=(1, 1), stride=(1, 1), bias=False)`
 ![Filter weights](./images/filter_weights_3.png)
 
 
