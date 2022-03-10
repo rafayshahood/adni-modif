@@ -93,7 +93,7 @@ class Configuration:
         if mode == Mode.training:
             data = settings['nnclr']['data']
         elif mode == Mode.evaluation:
-            data = settings['linear_eval']['data']
+            data = settings['nnclr']['data']
         elif mode == Mode.independent_evaluation:
             data = settings['independent_linear_eval']['data']
         else:

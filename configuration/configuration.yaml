@@ -39,7 +39,7 @@ data:
 
 # NNCLR settings:
 nnclr:
-  checkpoint: '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/output/checkpoints/nnclr.ckpt'
+  checkpoint: '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/output/checkpoints/nnclr_800.ckpt'
   epochs: 1000
   save_nepoch: 100  # a model will be saved every nth epoch
   batch_size: 128

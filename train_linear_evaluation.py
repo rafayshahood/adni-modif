@@ -38,13 +38,14 @@ torch.manual_seed(configuration.seed)
 cudnn.deterministic = True
 
 # An object referencing the paths to files
-data_paths = DataReader(configuration.caps_directories, configuration.info_data_files, configuration.diagnoses_info)
+data_paths = DataReader(configuration.caps_directories, configuration.info_data_files, configuration.diagnoses_info,
+                        configuration.quality_check)
 
 # A data loader
 data_loader = DataLoaderSSL(configuration, data_paths)
 
 # Use an efficientB0 backbone
-backbone = torchvision.models.efficientnet_b4()
+backbone = torchvision.models.efficientnet_b0()
 backbone = nn.Sequential(*list(backbone.children())[:-1])
 
 # Training procedure:

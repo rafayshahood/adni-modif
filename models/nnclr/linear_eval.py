@@ -19,7 +19,7 @@ class LinearEval(torch.nn.Module):
     Perform a linear evaluation of the NNCLR model
     """
     def __init__(self, feature_extractor: Sequential, num_classes: int, class_weights: ndarray = None,
-                 num_ftrs: int = 1792):
+                 num_ftrs: int = 1280):
         """
         Initialize with the provided attributes
         :param feature_extractor: a NNCLR backbone
@@ -34,7 +34,7 @@ class LinearEval(torch.nn.Module):
         else:
             self.ce = torch.nn.CrossEntropyLoss()
 
-        self.optimizer = Adam([{"params": self.classifier.parameters(), "lr": 0.001}])
+        self.optimizer = Adam([{"params": self.classifier.parameters(), "lr": 0.001, "weight_decay": 0.01}])
 
     def forward(self, x, only_features=False, lrp_run=False):
         """

@@ -1,6 +1,4 @@
 import logging
-from collections import OrderedDict
-from enum import Enum
 from typing import Tuple
 
 import numpy as np
@@ -111,8 +109,8 @@ class DataLoaderSSL:
             logging.info("Counts: {}".format(dict(zip(list(values), [list(values).count(i) for i in list(values)]))))
 
         # Create a dataset for accessing samples:
-        dataset = DataProviderSSL(self.data.data['file'].tolist(), targets, diagnoses, self.configuration.slices_range,
-                                  self.configuration.slices_per_view, self.mode)
+        dataset = DataProviderSSL(self.data.data['file'].tolist(), targets, diagnoses,
+                                  self.configuration.slices_range, self.configuration.slices_per_view, self.mode)
 
         train_dataset = torch_data.Subset(dataset, train_idx)
         eval_dataset = torch_data.Subset(dataset, eval_idx)
@@ -127,21 +125,13 @@ class DataLoaderSSL:
         Create data loader.
         """
 
-        targets = self.data.data['target'].tolist()  # int values
-        diagnoses = self.data.data['diagnosis'].tolist()  # str values
-
-        train_dataset, eval_dataset = self.split_data(targets, diagnoses)
+        train_dataset, eval_dataset = self.split_data(self.data.data['target'].tolist(),
+                                                      self.data.data['diagnosis'].tolist())
 
         if self.mode == Mode.evaluation:
             # During evaluation another set of targets can be used:
-            train_dataset = self.filter_data(train_dataset, diagnoses)
-            eval_dataset = self.filter_data(eval_dataset, diagnoses)
-
-            # Log the mapping between a diagnosis (str) and its encoded value (int):
-            unique_targets = list(OrderedDict.fromkeys(targets))
-            unique_diagnoses = list(OrderedDict.fromkeys(diagnoses))
-            for i in range(len(unique_targets)):
-                logging.info("{} is encoded as {}".format(unique_diagnoses[i], unique_targets[i]))
+            train_dataset = self.filter_data(train_dataset, self.data.data['diagnosis'].tolist())
+            eval_dataset = self.filter_data(eval_dataset, self.data.data['diagnosis'].tolist())
 
             # Data may be unbalanced. Calculate weights for the loss function:
             y = np.asarray([train_dataset.dataset.targets[i] for i in train_dataset.indices])
