@@ -1,13 +1,27 @@
 # General settings
 seed: 21
-dry_run: False  # used for testing purposes; if True, then only one iteration is performed
+dry_run: False  # used for testing purposes; if True, then only one training iteration is performed
 
 # Data settings:
 data:
   slices_range: 100
   slices_per_view: 3  # cannot be changed; depends on the architecture input
-  features_out: '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/output/features/nifd_adni_aibl'
+  features_out: '/data_dzne_archiv2/Studien/ClinicNET/output/features/nifd_adni_aibl'
   quality_check: True
+  col_names:  # the only columns that will be considered when reading clinical/file data
+    - participant_id
+    - session_id
+    - diagnosis
+    - age
+    - sex
+    - mmse
+  valid_dataset_names: # valid names for datasets
+    - NIFD
+    - ADNI3
+    - ADNI2
+    - AIBL
+    - OASIS
+    - PPMI
   diagnoses_info:
     valid_diagnoses:
       - CON
@@ -22,7 +36,7 @@ data:
       - SMC
       - AD Dementia
       - Cognitively normal
-      - PPMI # a dummy label for PPMI dataset (for data that is not used for linear evaluation)
+      - PPMI # a dummy label for PPMI dataset (data with this label will not be used for linear evaluation)
     control_labels:
       - CON
       - CN
@@ -31,7 +45,7 @@ data:
       - BV
       - SV
       - PNFA
-    merge_ftd: True  # will be encoded as 'FTD'
+    merge_ftd: False  # will be encoded as 'FTD'
     ad_labels:  # will be encoded as 'AD'
       - AD Dementia
       - AD
@@ -39,7 +53,7 @@ data:
 
 # NNCLR settings:
 nnclr:
-  checkpoint: '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/output/checkpoints/nnclr_800.ckpt'
+  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb0_fine_tuned/nnclr.ckpt'
   epochs: 1000
   save_nepoch: 100  # a model will be saved every nth epoch
   batch_size: 128
@@ -48,20 +62,20 @@ nnclr:
     - caps_directories:
       - '/data_dzne_archiv2/Studien/ClinicNET/data/nifd/CAPS/'
       - '/data_dzne_archiv2/Studien/ClinicNET/data/adni3/CAPS/'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/adni2/CAPS/'
       - '/data_dzne_archiv2/Studien/ClinicNET/data/aibl/CAPS/'
-      - '/data_dzne_archiv2/Studien/ClinicNET/data/ppmi/CAPS/'
 
     # A list of the paths to the TSV files containing targets/labels:
     - info_data_files:
       - '/data_dzne_archiv2/Studien/ClinicNET/data/nifd/info_data.tsv'
       - '/data_dzne_archiv2/Studien/ClinicNET/data/adni3/info_data.tsv'
+      - '/data_dzne_archiv2/Studien/ClinicNET/data/adni2/info_data.tsv'
       - '/data_dzne_archiv2/Studien/ClinicNET/data/aibl/info_data.tsv'
-      - '/data_dzne_archiv2/Studien/ClinicNET/data/ppmi/info_data.tsv'
 
 
 # Setting for the linear evaluation of the NNCLR model:
 linear_eval:
-  checkpoint: '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/output/checkpoints/nnclr_le_binary.ckpt'
+  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb0_fine_tuned/nnclr.ckpt'
   epochs: 200
   batch_size: 32
   replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis
@@ -69,10 +83,12 @@ linear_eval:
   eval_labels:
     - CN
     - AD
+    - BV
+    - MCI
 
 # Setting for the linear evaluation of the NNCLR model on the independent datasets:
 independent_linear_eval:
-  checkpoint: '/data_dzne_archiv/Studien/ClinicNET/clinic-net-git/output/checkpoints/nnclr_le_binary.ckpt'
+  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb0_fine_tuned/nnclr.ckpt'
   epochs: 200
   batch_size: 32
   replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis
@@ -91,7 +107,7 @@ independent_linear_eval:
 
 # LRP settings:
 lrp:
-  is_train_set: False  # if False, then a train set will be used
+  is_train_set: False  # if True, then a train set will be used
   checkpoint: ''
   batch_size: 256
   classes: 2

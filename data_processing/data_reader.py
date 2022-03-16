@@ -13,13 +13,15 @@ class DataReader:
     """
 
     def __init__(self, caps_directories: List[str], info_data: List[str], diagnoses_info: List[str],
-                 quality_check: bool) -> None:
+                 quality_check: bool, valid_dataset_names: list, info_data_cols: list) -> None:
         """
         Initialize with all required attributes.
         :param caps_directories: CAPS directory produced by the clinica library
         :param info_data: tabular data containing information about patients and their diagnosis
         :param quality_check: if True then samples will filtered based on MMSE values
         """
+        self.columns = info_data_cols
+        self.valid_dataset_names = valid_dataset_names
         self.quality_check = quality_check
         self.diagnoses_info = diagnoses_info
         self.data = self.get_files_and_labels(caps_directories, info_data)
@@ -61,7 +63,32 @@ class DataReader:
         d = {'participant_id': subjects_list, 'session_id': sessions_list, 'file': path_file_names_list}
         return pd.DataFrame(data=d)
 
-    def _apply_filter(self, data: pd.DataFrame) -> pd.DataFrame:
+    @staticmethod
+    def calculate_statistics(data: pd.DataFrame) -> None:
+        for dataset in data["dataset"].unique():
+            logging.info("Calculating statistics for {} ...".format(dataset))
+            data_ = data[data["dataset"] == dataset].copy()
+            logging.info("Number of total samples is {}".format(data_.shape[0]))
+
+            means = data_[["diagnosis", "mmse", "age"]].groupby('diagnosis').transform("mean")
+            means.rename(columns={"mmse": "mean_mmse", "age": "mean_age"}, inplace=True)
+
+            stds = data_[["diagnosis", "mmse", "age"]].groupby('diagnosis').transform("std")
+            stds.rename(columns={"mmse": "std_mmse", "age": "std_age"}, inplace=True)
+
+            stats = pd.concat([data_["diagnosis"].drop_duplicates(), means.drop_duplicates(), stds.drop_duplicates()],
+                              axis=1)
+            logging.info("\n{}".format(stats))
+
+            data_["counter"] = 1
+            gender_data = data_[["participant_id", "diagnosis", "sex", "counter"]].drop_duplicates().groupby(
+                ['diagnosis', 'sex']).sum()
+            logging.info("\n{}".format(gender_data))
+
+            logging.info("Unique patients: {}".format(data_['participant_id'].nunique()))
+
+    @staticmethod
+    def _apply_filter(data: pd.DataFrame) -> pd.DataFrame:
         """
         Removes samples that are above/below of 1 SD of the mean of MMSE.
         :param data: pd.DataFrame
@@ -74,7 +101,7 @@ class DataReader:
         data = data.dropna(subset=['mmse'])
 
         if 'NIFD' in data['participant_id'][0]:
-            logging.info("Processing NIFD ...")
+            logging.info("Applying MMSE quality filter on NIFD ...")
             # drop 'CN' samples where MMSE < (mean + 1 std)
             data = data[~((data["diagnosis"] == 'CN') & (data["mmse"] < data["threshold_neg"]))]
 
@@ -82,7 +109,7 @@ class DataReader:
             data = data[~((data["diagnosis"] != 'CN') & (data["mmse"] > data["threshold_pos"]))]
 
         elif 'ADNI' in data['participant_id'][0] or 'AIBL' in data['participant_id'][0]:
-            logging.info("Processing ADNI/AIBL ...")
+            logging.info("Applying MMSE quality filter on ADNI/AIBL ...")
             # drop 'CN' samples where MMSE < (mean + 1 std)
             data = data[~((data["diagnosis"] == 'CN') & (data["mmse"] < data["threshold_neg"]))]
 
@@ -97,6 +124,19 @@ class DataReader:
                 " ".join(re.findall("[a-zA-Z]+", data['participant_id'][0])).split(' ')[1]))
 
         return data
+
+    def select_columns(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Selects only specific columns.
+        :param data: pd.DataFrame
+        :param columns: a list of columns
+        :return: pd.DataFrame
+        """
+        for col in self.columns:
+            if col not in data.columns:
+                data[col] = None
+
+        return data[self.columns]
 
     def filter_on_quality(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -124,21 +164,25 @@ class DataReader:
         :return: the pandas data frame containing the ID of a patient, the ID of a session, and the corresponding
         target/label.
         """
-        cols_to_read = ["participant_id", "session_id", "diagnosis"]
         df_list = []
-        for info_data in info_data_list:
-            info_data = pd.read_csv(info_data, sep="\t")
+        for info_data_path in info_data_list:
+            info_data = pd.read_csv(info_data_path, sep="\t", low_memory=False)
             info_data.loc[info_data['diagnosis'].isin(self.diagnoses_info['control_labels']), 'diagnosis'] = "CN"
             info_data.loc[info_data['diagnosis'].isin(self.diagnoses_info['ad_labels']), 'diagnosis'] = "AD"
             info_data = info_data[info_data['diagnosis'].isin(self.diagnoses_info['valid_diagnoses'])]
             if self.quality_check:
                 info_data = self.filter_on_quality(info_data)
-                info_data = info_data[cols_to_read]
+            info_data = self.select_columns(info_data)
+            dataset = info_data_path.split("/")[-2].upper()
+            assert dataset in self.valid_dataset_names
+            info_data["dataset"] = dataset
             df_list.append(info_data)
         data = pd.concat(df_list)
-        data = data.dropna()
         if self.diagnoses_info['merge_ftd']:
             data.loc[data['diagnosis'].isin(self.diagnoses_info['ftd_labels']), 'diagnosis'] = "FTD"
+        mask1 = data[['participant_id', 'session_id']].duplicated(keep="first")
+        mask2 = data[['participant_id', 'session_id']].duplicated(keep=False)
+        data = data[~mask1 | ~mask2]
         assert ((data.groupby(['participant_id', 'session_id']).count().reset_index()["diagnosis"] == 1) == True).all()
         return data
 
@@ -160,16 +204,17 @@ class DataReader:
             found_data = files_df[(files_df["participant_id"] == patient_id_search) &
                                   (files_df["session_id"] == session_id_search)]
             if found_data.empty:
-                logging.warning(
-                    "No data are found for patient {} and session {}".format(patient_id_search, session_id_search))
+                info_data_df = info_data_df[~((info_data_df["participant_id"] == patient_id_search) &
+                                              (info_data_df["session_id"] == session_id_search))]
                 continue
             files.append(found_data["file"].values[0])
             patients.append(row["participant_id"])
             diagnoses.append(row["diagnosis"])
+        assert info_data_df.shape[0] == len(diagnoses)
         logging.info("Total number of samples: {}".format(len(diagnoses)))
         logging.info("Counts: {}".format(dict(
             zip(list(diagnoses), [list(diagnoses).count(i) for i in list(diagnoses)]))))
-
+        self.calculate_statistics(info_data_df)
         d = {'file': files, 'patient': patients, 'diagnosis': diagnoses}
         d['target'] = pd.factorize(d['diagnosis'])[0].astype(np.uint16)
         return pd.DataFrame(data=d)

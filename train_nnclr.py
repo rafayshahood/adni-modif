@@ -19,18 +19,18 @@ from data_processing.data_reader import DataReader
 from models.nnclr.nnclr import NNCLR
 from data_processing.utils import Mode
 
-# Logging information will be saved in a file 'debug.log'
+# Load a configuration file
+configuration = Configuration(Mode.training)
+
+# Logging information will be saved in a file 'debug_nnclr_{seed}.log'
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler("debug.log"),
+        logging.FileHandler("debug_nnclr_{}.log".format(configuration.seed)),
         logging.StreamHandler()
     ]
 )
-
-# Load a configuration file
-configuration = Configuration(Mode.training)
 
 # Assure that seed is set
 random.seed(configuration.seed)

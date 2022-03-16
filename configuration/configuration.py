@@ -67,6 +67,8 @@ class Configuration:
             self.features_out = data['features_out']
             self.diagnoses_info = data['diagnoses_info']
             self.quality_check = data['quality_check']
+            self.valid_dataset_names = data['valid_dataset_names']
+            self.col_names = data['col_names']
 
             # --- NNCLR ---
             self.nnclr_conf = NNCLRConfiguration(settings['nnclr'])

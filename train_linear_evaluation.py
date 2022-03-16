@@ -19,17 +19,18 @@ from data_processing.data_reader import DataReader
 from models.nnclr.linear_eval import LinearEval
 from models.nnclr.nnclr import NNCLR
 
+# Load a configuration file
+configuration = Configuration(Mode.evaluation)
+
+# Logging information will be saved in a file 'debug_le_{seed}.log'
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler("debug.log"),
+        logging.FileHandler("debug_le_{}.log".format(configuration.seed)),
         logging.StreamHandler()
     ]
 )
-
-# Load a configuration file
-configuration = Configuration(Mode.evaluation)
 
 # Assure that seed is set
 random.seed(configuration.seed)
@@ -39,7 +40,7 @@ cudnn.deterministic = True
 
 # An object referencing the paths to files
 data_paths = DataReader(configuration.caps_directories, configuration.info_data_files, configuration.diagnoses_info,
-                        configuration.quality_check)
+                        configuration.quality_check, configuration.valid_dataset_names, configuration.col_names)
 
 # A data loader
 data_loader = DataLoaderSSL(configuration, data_paths)
