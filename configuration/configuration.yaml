@@ -57,6 +57,7 @@ nnclr:
   epochs: 1000
   save_nepoch: 100  # a model will be saved every nth epoch
   batch_size: 128
+  trainable_layers: 2  # only the last n nn.Sequential blocks and other layers afterwards will be trained
   data:
     # A list of the paths to the CAPS directories:
     - caps_directories:

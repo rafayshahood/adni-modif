@@ -18,7 +18,8 @@ class NNCLR(nn.Module):
                  num_ftrs: int = 1280,
                  proj_hidden_dim: int = 1280,
                  pred_hidden_dim: int = 1280,
-                 out_dim: int = 512):
+                 out_dim: int = 512,
+                 freeze_layers: int = False):
         super().__init__()
 
         self.backbone = backbone
@@ -31,6 +32,31 @@ class NNCLR(nn.Module):
 
         # get a PyTorch optimizer
         self.optimizer = torch.optim.SGD(self.parameters(), lr=0.06, weight_decay=1e-5)
+
+        if freeze_layers > 0:
+            self.freeze_layers(last_mbconv_blocks=freeze_layers)
+
+    def freeze_layers(self, last_mbconv_blocks: int = 2):
+        """
+        Sets "requires_grad" to False of the given MBConv blocks.
+        :param last_mbconv_blocks: the last MBConv blocks that will not be trained
+        """
+        model_children = list(self.backbone.children())
+        for idx, child in enumerate(model_children):
+            if isinstance(child, nn.Sequential):
+                for sub_idx, sub_child in enumerate(list(child)):
+                    if sub_idx not in list(range(len(list(child)) - last_mbconv_blocks, len(list(child)))):
+                        logging.info("\nThe following modules will not be trained: {}".format(sub_child.modules))
+                        for param in sub_child.parameters():
+                            param.requires_grad = False
+            elif isinstance(child, nn.AdaptiveAvgPool2d):
+                logging.info("\nThe following modules will not be trained: {}".format(sub_child.modules))
+                for param in child.parameters():
+                    param.requires_grad = False
+
+        logging.info(
+            "# non-trainable parameters: {}".format(
+                sum(p.numel() for p in self.backbone.parameters() if ~ p.requires_grad)))
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         y = self.backbone(x).flatten(start_dim=1)

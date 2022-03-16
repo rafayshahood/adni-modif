@@ -17,6 +17,7 @@ class NNCLRConfiguration:
         self.batch_size = settings['batch_size']
         self.checkpoint = settings['checkpoint']
         self.save_nepoch = settings['save_nepoch']
+        self.trainable_layers = settings['trainable_layers']
 
 
 class LinearEvaluationConfiguration:
