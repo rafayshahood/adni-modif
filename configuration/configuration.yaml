@@ -53,10 +53,10 @@ data:
 
 # NNCLR settings:
 nnclr:
-  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb0_fine_tuned/nnclr.ckpt'
+  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb3_fine_tuned/'
   epochs: 1000
   save_nepoch: 100  # a model will be saved every nth epoch
-  batch_size: 128
+  batch_size: 256
   trainable_layers: 2  # only the last n nn.Sequential blocks and other layers afterwards will be trained
   data:
     # A list of the paths to the CAPS directories:
@@ -76,7 +76,7 @@ nnclr:
 
 # Setting for the linear evaluation of the NNCLR model:
 linear_eval:
-  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb0_fine_tuned/nnclr.ckpt'
+  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb3_fine_tuned/nnclr.ckpt'
   epochs: 200
   batch_size: 32
   replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis

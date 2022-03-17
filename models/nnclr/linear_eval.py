@@ -19,7 +19,7 @@ class LinearEval(torch.nn.Module):
     Perform a linear evaluation of the NNCLR model
     """
     def __init__(self, feature_extractor: Sequential, num_classes: int, class_weights: ndarray = None,
-                 num_ftrs: int = 1280):
+                 num_ftrs: int = 1536):
         """
         Initialize with the provided attributes
         :param feature_extractor: a NNCLR backbone
@@ -124,7 +124,7 @@ class LinearEval(torch.nn.Module):
             if epoch % 100 == 0:
                 self.save(configuration.le_conf.checkpoint)
             avg_loss = total_loss / len(train_loader)
-            logging.info(f"epoch: {epoch:>02}, loss: {avg_loss:.5f}")
+            logging.info(f"epoch: |{epoch:>02}|, loss: |{avg_loss:.5f}|")
             logging.info("Train metrics: {}".format(metrics_torch.compute()))
 
     def test_(self, configuration: Configuration, test_loader: torch_data.DataLoader):

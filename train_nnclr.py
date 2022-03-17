@@ -45,8 +45,8 @@ data_paths = DataReader(configuration.caps_directories, configuration.info_data_
 # A data loader
 data_loader = DataLoaderSSL(configuration, data_paths)
 
-# Use an efficientB0 backbone
-backbone = torchvision.models.efficientnet_b0(pretrained=True)  # pretrained model is loaded
+# Use an efficientB3 backbone
+backbone = torchvision.models.efficientnet_b3(pretrained=True)  # pretrained model is loaded
 backbone = nn.Sequential(*list(backbone.children())[:-1])  # remove classification layer
 
 #  Training procedure:

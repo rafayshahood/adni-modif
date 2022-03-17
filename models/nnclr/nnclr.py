@@ -15,9 +15,9 @@ class NNCLR(nn.Module):
     NNCRL model
     """
     def __init__(self, backbone: nn.Sequential,
-                 num_ftrs: int = 1280,
-                 proj_hidden_dim: int = 1280,
-                 pred_hidden_dim: int = 1280,
+                 num_ftrs: int = 1536,
+                 proj_hidden_dim: int = 1536,
+                 pred_hidden_dim: int = 1536,
                  out_dim: int = 512,
                  freeze_layers: int = False):
         super().__init__()
@@ -65,10 +65,11 @@ class NNCLR(nn.Module):
         z = z.detach()
         return z, p
 
-    def save(self, file_path: str) -> None:
+    def save(self, file_path: str, epoch: int) -> None:
         """
         Save a model
         :param file_path: a path to a file
+        :param epoch: epoch
         """
         backbone_state_dict = self.backbone.state_dict()
         projection_mlp_state_dict = self.projection_head.state_dict()
@@ -76,7 +77,7 @@ class NNCLR(nn.Module):
         torch.save({"backbone": backbone_state_dict,
                     "projection": projection_mlp_state_dict,
                     "prediction": prediction_mlp_state_dict},
-                   file_path)
+                   file_path+"nnclr_epoch_{}.ckpt".format(str(epoch)))
         logging.info("Checkpoint: {} is saved".format(str(file_path)))
 
     def load(self, file_path: str) -> None:
@@ -132,9 +133,9 @@ class NNCLR(nn.Module):
                 self.optimizer.step()
                 self.optimizer.zero_grad()
                 if configuration.dry_run:
-                    self.save(configuration.nnclr_conf.checkpoint)
+                    self.save(configuration.nnclr_conf.checkpoint, epoch)
                     return
             if epoch % configuration.nnclr_conf.save_nepoch == 0:
-                self.save(configuration.nnclr_conf.checkpoint)
+                self.save(configuration.nnclr_conf.checkpoint, epoch)
             avg_loss = total_loss / len(data_loader)
-            logging.info(f"epoch: {epoch:>02}, loss: {avg_loss:.5f}")
+            logging.info(f"epoch: |{epoch:>02}|, loss: |{avg_loss:.5f}|")
