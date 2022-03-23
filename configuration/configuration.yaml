@@ -53,8 +53,8 @@ data:
 
 # NNCLR settings:
 nnclr:
-  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/convnext_tiny_fine_tuned/'
-  checkpoint_resume: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/convnext_tiny_fine_tuned/nnclr_epoch_300.ckpt'
+  checkpoint: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/'
+  checkpoint_resume: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/nnclr_epoch_300.ckpt'
   epochs: 200
   save_nepoch: 50  # a model will be saved every nth epoch
   batch_size: 128
@@ -62,23 +62,23 @@ nnclr:
   data:
     # A list of the paths to the CAPS directories:
     - caps_directories:
-      - '/data_dzne_archiv2/Studien/ClinicNET/data/nifd/CAPS/'
-      - '/data_dzne_archiv2/Studien/ClinicNET/data/adni3/CAPS/'
-      - '/data_dzne_archiv2/Studien/ClinicNET/data/adni2/CAPS/'
-      - '/data_dzne_archiv2/Studien/ClinicNET/data/aibl/CAPS/'
+      - '/mnt/ssd2/ClinicNET/data/nifd/CAPS/'
+      - '/mnt/ssd2/ClinicNET/data/adni3/CAPS/'
+      - '/mnt/ssd2/ClinicNET/data/adni2/CAPS/'
+      - '/mnt/ssd2/ClinicNET/data/aibl/CAPS/'
 
     # A list of the paths to the TSV files containing targets/labels:
     - info_data_files:
-      - '/data_dzne_archiv2/Studien/ClinicNET/data/nifd/info_data.tsv'
-      - '/data_dzne_archiv2/Studien/ClinicNET/data/adni3/info_data.tsv'
-      - '/data_dzne_archiv2/Studien/ClinicNET/data/adni2/info_data.tsv'
-      - '/data_dzne_archiv2/Studien/ClinicNET/data/aibl/info_data.tsv'
+      - '/mnt/ssd2/ClinicNET/data/nifd/info_data.tsv'
+      - '/mnt/ssd2/ClinicNET/data/adni3/info_data.tsv'
+      - '/mnt/ssd2/ClinicNET/data/adni2/info_data.tsv'
+      - '/mnt/ssd2/ClinicNET/data/aibl/info_data.tsv'
 
 
 # Setting for the linear evaluation of the NNCLR model:
 linear_eval:
-  checkpoint_load: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb3_fine_tuned/nnclr_epoch_1000.ckpt'
-  checkpoint_save: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb3_top_layer/seed22/le.ckpt'
+  checkpoint_load: '/mnt/ssd2/ClinicNET/checkpoints/efficientnetb3_fine_tuned/nnclr_epoch_1000.ckpt'
+  checkpoint_save: '/mnt/ssd2/ClinicNET/checkpoints/efficientnetb3_top_layer/seed22/le.ckpt'
   epochs: 10
   batch_size: 32
   replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis

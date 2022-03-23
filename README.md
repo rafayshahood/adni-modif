@@ -32,7 +32,7 @@ See also /data_dzne_archiv2/Studien/ClinicNET/data/
 ## Set-up Instructions:
 - `sudo apt-get install dcm2niix`
 - install ANTs: https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS
-- `pip3 install lightly openpyxl mlxtend zennit nibabel`
+- `pip3 install lightly openpyxl mlxtend zennit nibabel torch_tb_profiler`
 - `git clone https://github.com/VadymV/clinica` and `git clone https://github.com/VadymV/clinicadl.git`
 - `pip install ./clinica ./clinicadl`
 - download each dataset and place extracted image data into its own directory: 

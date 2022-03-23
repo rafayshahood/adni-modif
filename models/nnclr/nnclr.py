@@ -10,6 +10,11 @@ from torch.utils import data as torch_data
 from configuration.configuration import Configuration
 
 
+def trace_handler(prof):
+    print(prof.key_averages().table(
+        sort_by="self_cuda_time_total", row_limit=10))
+
+
 class NNCLR(nn.Module):
     """
     NNCRL model
@@ -113,28 +118,38 @@ class NNCLR(nn.Module):
         :param configuration: Configuration
         :param data_loader: DataLoader
         """
-        for epoch in range(1, configuration.nnclr_conf.epochs + 1):
-            total_loss = 0
-            for idx, (view_one, view_two, _) in enumerate(data_loader):
-                # forward pass
-                view_one = view_one.to(configuration.device)
-                view_two = view_two.to(configuration.device)
+        with torch.profiler.profile(
+                schedule=torch.profiler.schedule(
+                    wait=1,
+                    warmup=2,
+                    active=10,
+                    repeat=1),
+                on_trace_ready=trace_handler,
+        ) as profiler:
+            for epoch in range(1, configuration.nnclr_conf.epochs + 1):
+                total_loss = 0
 
-                # z and p are projections and predictions heads respectively
-                z1, p1 = self(view_one)
-                z2, p2 = self(view_two)
+                for idx, (view_one, view_two, _) in enumerate(data_loader):
+                    # forward pass
+                    view_one = view_one.to(configuration.device)
+                    view_two = view_two.to(configuration.device)
 
-                nn1 = self.memory_bank(z1.detach(), update=False)  # top-1 NN lookup without update
-                nn2 = self.memory_bank(z2.detach(), update=True)  # top-1 NN lookup with update
+                    # z and p are projections and predictions heads respectively
+                    z1, p1 = self(view_one)
+                    z2, p2 = self(view_two)
 
-                loss = 0.5 * (self.criterion(nn1, p2) + self.criterion(nn2, p1))
-                total_loss += loss.detach()
-                loss.backward()
-                self.optimizer.step()
-                self.optimizer.zero_grad()
-                if configuration.dry_run:
-                    self.save(configuration.nnclr_conf.checkpoint, epoch)
-                    return
+                    nn1 = self.memory_bank(z1.detach(), update=False)  # top-1 NN lookup without update
+                    nn2 = self.memory_bank(z2.detach(), update=True)  # top-1 NN lookup with update
+
+                    loss = 0.5 * (self.criterion(nn1, p2) + self.criterion(nn2, p1))
+                    total_loss += loss.detach()
+                    loss.backward()
+                    self.optimizer.step()
+                    self.optimizer.zero_grad()
+                    if configuration.dry_run:
+                        self.save(configuration.nnclr_conf.checkpoint, epoch)
+                        return
+                profiler.step()
             if epoch % configuration.nnclr_conf.save_nepoch == 0:
                 self.save(configuration.nnclr_conf.checkpoint, epoch)
             avg_loss = total_loss / len(data_loader)
