@@ -15,9 +15,9 @@ class NNCLR(nn.Module):
     NNCRL model
     """
     def __init__(self, backbone: nn.Sequential,
-                 num_ftrs: int = 1536,
-                 proj_hidden_dim: int = 1536,
-                 pred_hidden_dim: int = 1536,
+                 num_ftrs: int = 768,  # 1536
+                 proj_hidden_dim: int = 768,
+                 pred_hidden_dim: int = 768,
                  out_dim: int = 512,
                  freeze_layers: int = False):
         super().__init__()
@@ -50,7 +50,7 @@ class NNCLR(nn.Module):
                         for param in sub_child.parameters():
                             param.requires_grad = False
             elif isinstance(child, nn.AdaptiveAvgPool2d):
-                logging.info("\nThe following modules will not be trained: {}".format(sub_child.modules))
+                logging.info("\nThe following modules will not be trained: {}".format(child.modules))
                 for param in child.parameters():
                     param.requires_grad = False
 

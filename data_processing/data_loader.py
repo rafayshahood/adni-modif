@@ -145,5 +145,5 @@ class DataLoaderSSL:
         # Finally create data loaders that will be used during training/evaluation/feature extraction:
         self.train_loader = torch_data.DataLoader(train_dataset,
                                                   batch_size=self.batch_size,
-                                                  shuffle=True, num_workers=4)
-        self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=False, num_workers=4)
+                                                  shuffle=True, num_workers=8)
+        self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=False, num_workers=8)

@@ -1,12 +1,14 @@
 import logging
+from functools import partial
 from random import random
 
 import numpy as np
 import pandas as pd
 import torch
 from numpy import ndarray
-from torch import nn
+from torch import nn, Tensor
 from torch.nn import Sequential
+from torch.nn import functional as F
 from torch.optim import Adam
 from torch.utils import data as torch_data
 from torchmetrics import MetricCollection, Accuracy, Precision, Recall, F1, ConfusionMatrix, MatthewsCorrcoef
@@ -14,10 +16,19 @@ from torchmetrics import MetricCollection, Accuracy, Precision, Recall, F1, Conf
 from configuration.configuration import Configuration
 
 
+class LayerNorm2d(nn.LayerNorm):
+    def forward(self, x: Tensor) -> Tensor:
+        x = x.permute(0, 2, 3, 1)
+        x = F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
+        x = x.permute(0, 3, 1, 2)
+        return x
+
+
 class LinearEval(torch.nn.Module):
     """
     Perform a linear evaluation of the NNCLR model
     """
+
     def __init__(self, feature_extractor: Sequential, num_classes: int, class_weights: ndarray = None,
                  num_ftrs: int = 1536):
         """
@@ -28,13 +39,23 @@ class LinearEval(torch.nn.Module):
         super(LinearEval, self).__init__()
         self.num_classes = num_classes
         self.feature_extractor = feature_extractor
-        self.classifier = nn.Linear(num_ftrs, num_classes)
+        norm_layer = partial(LayerNorm2d, eps=1e-6)
+        self.classifier = nn.Sequential(
+            norm_layer(768), nn.Flatten(1), nn.Linear(768, num_classes)
+        )
+
+        for m in self.classifier():
+            if isinstance(m, (nn.Conv2d, nn.Linear)):
+                nn.init.trunc_normal_(m.weight, std=0.02)
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+
         if class_weights is not None:
             self.ce = torch.nn.CrossEntropyLoss(torch.tensor(class_weights, dtype=torch.float))
         else:
             self.ce = torch.nn.CrossEntropyLoss()
 
-        self.optimizer = Adam([{"params": self.classifier.parameters(), "lr": 0.001, "weight_decay": 0.01}])
+        self.optimizer = Adam([{"params": self.classifier.parameters(), "lr": 0.001}])
 
     def forward(self, x, only_features=False, lrp_run=False):
         """
@@ -84,8 +105,17 @@ class LinearEval(torch.nn.Module):
         :param configuration: Configuration
         :param train_loader: torch.utils.data.DataLoader
         """
+        model_children = list(self.feature_extractor.children())
+        for idx, child in enumerate(model_children):
+            for param in child.parameters():
+                param.requires_grad = False
         self.feature_extractor.eval()
         self.classifier.train()
+        logging.info("# trainable parameters in backbone: {}".format(
+            sum(p.numel() for p in self.feature_extractor.parameters() if p.requires_grad)))
+        logging.info("# trainable parameters in classifier: {}".format(
+            sum(p.numel() for p in self.classifier.parameters() if p.requires_grad)))
+        logging.info("# trainable parameters: {}".format(sum(p.numel() for p in self.parameters() if p.requires_grad)))
 
         for epoch in range(1, configuration.le_conf.epochs + 1):
             total_loss = 0
@@ -119,10 +149,10 @@ class LinearEval(torch.nn.Module):
                 _, predicted = torch.max(output, 1)
                 metrics_torch(predicted, target.int())
                 if configuration.dry_run:
-                    self.save(configuration.le_conf.checkpoint)
+                    self.save(configuration.le_conf.checkpoint_save)
                     return
-            if epoch % 100 == 0:
-                self.save(configuration.le_conf.checkpoint)
+            if epoch % 10 == 0:
+                self.save(configuration.le_conf.checkpoint_save)
             avg_loss = total_loss / len(train_loader)
             logging.info(f"epoch: |{epoch:>02}|, loss: |{avg_loss:.5f}|")
             logging.info("Train metrics: {}".format(metrics_torch.compute()))

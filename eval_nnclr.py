@@ -18,17 +18,17 @@ from data_processing.data_loader import DataLoaderSSL, Mode
 from data_processing.data_reader import DataReader
 from models.nnclr.linear_eval import LinearEval
 
+# Load a configuration file
+configuration = Configuration(Mode.evaluation)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler("debug.log"),
+        logging.FileHandler("debug_eval_{}.log".format(configuration.seed)),
         logging.StreamHandler()
     ]
 )
-
-# Load a configuration file
-configuration = Configuration(Mode.evaluation)
 
 # Assure that seed is set
 random.seed(configuration.seed)
@@ -37,13 +37,14 @@ torch.manual_seed(configuration.seed)
 cudnn.deterministic = True
 
 # An object referencing the paths to files
-data_paths = DataReader(configuration.caps_directories, configuration.info_data_files, configuration.diagnoses_info)
+data_paths = DataReader(configuration.caps_directories, configuration.info_data_files, configuration.diagnoses_info,
+                        configuration.quality_check, configuration.valid_dataset_names, configuration.col_names)
 
 # A data loader
 data_loader = DataLoaderSSL(configuration, data_paths)
 
-# Use an efficientB4 backbone
-backbone = torchvision.models.efficientnet_b4()
+# Use an efficientB3 backbone
+backbone = torchvision.models.efficientnet_b3()
 backbone = nn.Sequential(*list(backbone.children())[:-1])
 
 logging.info("Evaluation of the NNCLR model on the test set...")
@@ -52,7 +53,7 @@ data_loader.batch_size = configuration.le_conf.batch_size
 data_loader.create_data_loader()
 
 linear_eval = LinearEval(backbone, data_loader.classes)
-linear_eval.load(configuration.le_conf.checkpoint, configuration.device)  # load a saved model
+linear_eval.load(configuration.le_conf.checkpoint_save, configuration.device)  # load a saved model
 linear_eval.to(configuration.device)
 
 logging.info("Test ...")

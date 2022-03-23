@@ -16,6 +16,7 @@ class NNCLRConfiguration:
         self.epochs = settings['epochs']
         self.batch_size = settings['batch_size']
         self.checkpoint = settings['checkpoint']
+        self.checkpoint_resume = settings['checkpoint_resume']
         self.save_nepoch = settings['save_nepoch']
         self.trainable_layers = settings['trainable_layers']
 
@@ -27,7 +28,8 @@ class LinearEvaluationConfiguration:
     def __init__(self, settings: dict):
         self.epochs = settings['epochs']
         self.batch_size = settings['batch_size']
-        self.checkpoint = settings['checkpoint']
+        self.checkpoint_load = settings['checkpoint_load']
+        self.checkpoint_save = settings['checkpoint_save']
         self.replicas = settings['replicas']
         self.replicas_extraction = settings['replicas_extraction']
         self.eval_labels = settings['eval_labels']

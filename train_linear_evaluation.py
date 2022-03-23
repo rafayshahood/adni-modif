@@ -45,8 +45,8 @@ data_paths = DataReader(configuration.caps_directories, configuration.info_data_
 # A data loader
 data_loader = DataLoaderSSL(configuration, data_paths)
 
-# Use an efficientB0 backbone
-backbone = torchvision.models.efficientnet_b0()
+# Use an efficientB3 backbone
+backbone = torchvision.models.efficientnet_b3()
 backbone = nn.Sequential(*list(backbone.children())[:-1])
 
 # Training procedure:
@@ -54,8 +54,7 @@ logging.info("Linear evaluation of the NNCLR model ...")
 data_loader.mode = Mode.evaluation
 data_loader.batch_size = configuration.le_conf.batch_size
 data_loader.create_data_loader()
-backbone = NNCLR.load_state_dict_(backbone, configuration.nnclr_conf.checkpoint)  # load a saved backbone
+backbone = NNCLR.load_state_dict_(backbone, configuration.le_conf.checkpoint_load)  # load a saved backbone
 linear_eval = LinearEval(backbone, data_loader.classes, data_loader.class_weights)  # initialize a classifier
-logging.info("# trainable parameters: {}".format(sum(p.numel() for p in linear_eval.parameters() if p.requires_grad)))
 linear_eval.to(configuration.device)
 linear_eval.train_(configuration, data_loader.train_loader)

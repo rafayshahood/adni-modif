@@ -1,5 +1,5 @@
 # General settings
-seed: 21
+seed: 22
 dry_run: False  # used for testing purposes; if True, then only one training iteration is performed
 
 # Data settings:
@@ -53,11 +53,12 @@ data:
 
 # NNCLR settings:
 nnclr:
-  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb3_fine_tuned/'
-  epochs: 1000
-  save_nepoch: 100  # a model will be saved every nth epoch
-  batch_size: 256
-  trainable_layers: 2  # only the last n nn.Sequential blocks and other layers afterwards will be trained
+  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/convnext_tiny_fine_tuned/'
+  checkpoint_resume: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/convnext_tiny_fine_tuned/nnclr_epoch_300.ckpt'
+  epochs: 200
+  save_nepoch: 50  # a model will be saved every nth epoch
+  batch_size: 128
+  trainable_layers: 0  # only the last n nn.Sequential blocks and other layers afterwards will be trained
   data:
     # A list of the paths to the CAPS directories:
     - caps_directories:
@@ -76,8 +77,9 @@ nnclr:
 
 # Setting for the linear evaluation of the NNCLR model:
 linear_eval:
-  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb3_fine_tuned/nnclr.ckpt'
-  epochs: 200
+  checkpoint_load: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb3_fine_tuned/nnclr_epoch_1000.ckpt'
+  checkpoint_save: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb3_top_layer/seed22/le.ckpt'
+  epochs: 10
   batch_size: 32
   replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis
   replicas_extraction: 1  # extract # replicas_extraction random slices from each sample
@@ -89,8 +91,8 @@ linear_eval:
 
 # Setting for the linear evaluation of the NNCLR model on the independent datasets:
 independent_linear_eval:
-  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb0_fine_tuned/nnclr.ckpt'
-  epochs: 200
+  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb0_fine_tuned/nnclr_epoch_1000.ckpt'
+  epochs: 10
   batch_size: 32
   replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis
   replicas_extraction: 1  # extract # replicas_extraction random slices from each sample
