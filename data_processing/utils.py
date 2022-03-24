@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 from matplotlib import pyplot
-
 from mlxtend.plotting import plot_confusion_matrix
 from sklearn.metrics import roc_curve, roc_auc_score
 
@@ -47,11 +46,11 @@ def plot_cm(conf_matrix):
     plt.show()
 
 
-def plot_cm_mlxtend(conf_matrix):
+def plot_cm_mlxtend(conf_matrix, title):
     fig, ax = plot_confusion_matrix(conf_mat=conf_matrix, figsize=(6, 6), cmap=plt.cm.Greens)
     plt.xlabel('Predictions', fontsize=18)
     plt.ylabel('Actuals', fontsize=18)
-    plt.title('Confusion Matrix', fontsize=18)
+    plt.title(title, fontsize=18)
     plt.show()
 
 
@@ -85,5 +84,9 @@ def plot_roc(y, probs):
     pyplot.show()
 
 
-
-#plot_cm_mlxtend(np.array([[31, 6], [7, 50]]))
+plot_cm_mlxtend(np.array([[357, 52, 25, 79],
+                          [19, 131, 1, 30],
+                          [0, 2, 30, 0],
+                          [87, 63, 3, 94]]
+                         ),
+                "Confusion matrix: \n0 - CN, 1 - AD, 2 - BV, 3 - MCI")

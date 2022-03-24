@@ -43,8 +43,8 @@ data_paths = DataReader(configuration.caps_directories, configuration.info_data_
 # A data loader
 data_loader = DataLoaderSSL(configuration, data_paths)
 
-# Use an efficientB3 backbone
-backbone = torchvision.models.efficientnet_b3()
+# Use an convnext_tiny backbone
+backbone = torchvision.models.convnext_tiny()
 backbone = nn.Sequential(*list(backbone.children())[:-1])
 
 logging.info("Evaluation of the NNCLR model on the test set...")

@@ -2,7 +2,7 @@
 
 Explainable Differential Diagnosis of Dementia using Self-supervised Learning.
 The proposed method is based on Nearest-Neighbor Contrastive Learning of Visual
-Representations (NNCLR) [1] using EfficientNET-B0 [2].
+Representations (NNCLR) [1] using ConvNeXt Tiny [2].
 
 The following image visualizes the whole architecture:
 
@@ -122,24 +122,16 @@ appropriate places:
 
 
 ## Current state
-- NNCLR using 3 datasets: `ADNI3`, `NIFD`, `AIBL`
+- NNCLR using 4 datasets: `ADNI3`, `ADNI2`, `NIFD`, `AIBL`
 - Evaluation results:
-  - `AD` vs `FTD`: MCC is 0.4990; Recall is 0.7551; Precision is 0.7440; Confusion matrix:
+  - `CN` vs `AD` vs `BV` vs `MCI`: MCC is 0.4299; Recall is 0.6844; Precision is 0.5677; Confusion matrix:
   ![Architecture](./images/cm.png)
-- Pre-trained NNCLR model: https://drive.google.com/file/d/1r76tJ6uLnhRIfho_2maPL7YsSsd3pYNx/view?usp=sharing
-- Pre-trained NNCLR model + Top Linear layer: https://drive.google.com/file/d/1SgHFgna0SL2cbEW_N9hTTmpJoafJCwGD/view?usp=sharing
-
-## Filter weights
-Visualization of filters of the Conv2D layer from the 6th Mobile Inverted Bottleneck (https://paperswithcode.com/method/inverted-residual-block) and
-1st sequential block with the non-default `groups` parameter (https://iksinc.online/2020/05/10/groups-parameter-of-the-convolution-layer/) : `Conv2d(192, 1152, kernel_size=(1, 1), stride=(1, 1), bias=False)`
-![Filter weights](./images/filter_weights_3.png)
-
+- Pre-trained NNCLR model: ...
+- Pre-trained NNCLR model + Top Linear layer: ...
 
 ## References:
 [1] Dwibedi, D., Aytar, Y., Tompson, J., Sermanet, P., & Zisserman, A. (2021).
 With a Little Help From My Friends: Nearest-Neighbor Contrastive Learning of Visual Representations.
 <em> In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)</em>, 9588-9597.
 
-[2] Mingxing Tan and Quoc V. Le (2019). EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks.
-<em>Proceedings of the 36th International Conference on Machine
-Learning, Long Beach, California, PMLR 97</em>, 2019.
+[2] Liu, Z., Mao, H., Wu, C.Y., Feichtenhofer, C., Darrell, T., & Xie, S.. (2022). A ConvNet for the 2020s. 

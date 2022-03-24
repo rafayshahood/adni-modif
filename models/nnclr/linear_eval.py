@@ -1,4 +1,5 @@
 import logging
+from collections import OrderedDict
 from functools import partial
 from random import random
 
@@ -30,7 +31,7 @@ class LinearEval(torch.nn.Module):
     """
 
     def __init__(self, feature_extractor: Sequential, num_classes: int, class_weights: ndarray = None,
-                 num_ftrs: int = 1536):
+                 num_ftrs: int = 768):
         """
         Initialize with the provided attributes
         :param feature_extractor: a NNCLR backbone
@@ -40,12 +41,15 @@ class LinearEval(torch.nn.Module):
         self.num_classes = num_classes
         self.feature_extractor = feature_extractor
         norm_layer = partial(LayerNorm2d, eps=1e-6)
-        self.classifier = nn.Sequential(
-            norm_layer(768), nn.Flatten(1), nn.Linear(768, num_classes)
-        )
 
-        for m in self.classifier():
-            if isinstance(m, (nn.Conv2d, nn.Linear)):
+        self.classifier = nn.Sequential(OrderedDict([
+            ('norm_layer', norm_layer(num_ftrs)),
+            ('flatten_layer', nn.Flatten(1)),
+            ('top_layer', nn.Linear(num_ftrs, num_classes)),
+        ]))
+
+        for name, m in self.named_modules():
+            if isinstance(m, nn.Linear) and name == 'classifier.top_layer':
                 nn.init.trunc_normal_(m.weight, std=0.02)
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
@@ -73,7 +77,7 @@ class LinearEval(torch.nn.Module):
         if only_features:
             out = out.flatten(start_dim=1)
         else:
-            out = self.classifier(out.flatten(start_dim=1))
+            out = self.classifier(out)
         return out
 
     def load(self, file_path: str, device: str = "cpu") -> None:
@@ -87,16 +91,17 @@ class LinearEval(torch.nn.Module):
         self.classifier.load_state_dict(checkpoint["classifier"])
         logging.info("Checkpoint: {} is loaded".format(str(file_path)))
 
-    def save(self, file_path: str) -> None:
+    def save(self, file_path: str, epoch: int) -> None:
         """
         Save a model
         :param file_path: a path to a file
+        :param epoch: epoch
         """
         feature_extractor_dict = self.feature_extractor.state_dict()
         classifier_dict = self.classifier.state_dict()
         torch.save({"feature_extractor": feature_extractor_dict,
                     "classifier": classifier_dict},
-                   file_path)
+                   file_path + "nnclr_epoch_{}.ckpt".format(str(epoch)))
         logging.info("Checkpoint: {} is saved".format(str(file_path)))
 
     def train_(self, configuration: Configuration, train_loader: torch_data.DataLoader) -> None:
@@ -149,10 +154,10 @@ class LinearEval(torch.nn.Module):
                 _, predicted = torch.max(output, 1)
                 metrics_torch(predicted, target.int())
                 if configuration.dry_run:
-                    self.save(configuration.le_conf.checkpoint_save)
+                    self.save(configuration.le_conf.checkpoint_save, epoch)
                     return
             if epoch % 10 == 0:
-                self.save(configuration.le_conf.checkpoint_save)
+                self.save(configuration.le_conf.checkpoint_save, epoch)
             avg_loss = total_loss / len(train_loader)
             logging.info(f"epoch: |{epoch:>02}|, loss: |{avg_loss:.5f}|")
             logging.info("Train metrics: {}".format(metrics_torch.compute()))
