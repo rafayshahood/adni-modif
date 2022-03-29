@@ -105,6 +105,10 @@ class NNCLR(nn.Module):
         :param checkpoint: a path to a model
         :return: a model with loaded state dictionary
         """
+
+        if len(checkpoint) == 0:
+            return feature_extractor
+
         checkpoint_ = torch.load(checkpoint)
         state_dict = checkpoint_['backbone']
         feature_extractor.load_state_dict(state_dict)

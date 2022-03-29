@@ -101,7 +101,7 @@ class LinearEval(torch.nn.Module):
         classifier_dict = self.classifier.state_dict()
         torch.save({"feature_extractor": feature_extractor_dict,
                     "classifier": classifier_dict},
-                   file_path + "nnclr_epoch_{}.ckpt".format(str(epoch)))
+                   file_path)
         logging.info("Checkpoint: {} is saved".format(str(file_path)))
 
     def train_(self, configuration: Configuration, train_loader: torch_data.DataLoader) -> None:

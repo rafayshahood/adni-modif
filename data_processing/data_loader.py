@@ -110,7 +110,7 @@ class DataLoaderSSL:
 
         # Create a dataset for accessing samples:
         dataset = DataProviderSSL(self.data.data['file'].tolist(), targets, diagnoses,
-                                  self.configuration.slices_range, self.configuration.slices_per_view, self.mode)
+                                  self.configuration.slices_range, self.mode)
 
         train_dataset = torch_data.Subset(dataset, train_idx)
         eval_dataset = torch_data.Subset(dataset, eval_idx)

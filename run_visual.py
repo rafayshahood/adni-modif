@@ -2,7 +2,7 @@ import torchvision
 from torch import nn
 
 from models.nnclr.nnclr import NNCLR
-from visual.filter import Filter
+from visual.Visual import Filter
 
 backbone = torchvision.models.efficientnet_b0()
 backbone = nn.Sequential(*list(backbone.children())[:-1])

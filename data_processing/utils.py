@@ -84,9 +84,9 @@ def plot_roc(y, probs):
     pyplot.show()
 
 
-plot_cm_mlxtend(np.array([[357, 52, 25, 79],
-                          [19, 131, 1, 30],
-                          [0, 2, 30, 0],
-                          [87, 63, 3, 94]]
-                         ),
-                "Confusion matrix: \n0 - CN, 1 - AD, 2 - BV, 3 - MCI")
+# plot_cm_mlxtend(np.array([[357, 52, 25, 79],
+#                           [19, 131, 1, 30],
+#                           [0, 2, 30, 0],
+#                           [87, 63, 3, 94]]
+#                          ),
+#                 "Confusion matrix: \n0 - CN, 1 - AD, 2 - BV, 3 - MCI")

@@ -1,12 +1,11 @@
 # General settings
-seed: 22
+seed: 42
 dry_run: False  # used for testing purposes; if True, then only one training iteration is performed
 
 # Data settings:
 data:
-  slices_range: 100
-  slices_per_view: 3  # cannot be changed; depends on the architecture input
-  features_out: '/data_dzne_archiv2/Studien/ClinicNET/output/features/nifd_adni_aibl'
+  slices_range: 120
+  features_out: '/mnt/ssd2/ClinicNET/features/nifd_adni_aibl'
   quality_check: True
   col_names:  # the only columns that will be considered when reading clinical/file data
     - participant_id
@@ -54,8 +53,8 @@ data:
 # NNCLR settings:
 nnclr:
   checkpoint: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/'
-  checkpoint_resume: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/nnclr_epoch_300.ckpt'
-  epochs: 200
+  checkpoint_resume: ''
+  epochs: 1000
   save_nepoch: 50  # a model will be saved every nth epoch
   batch_size: 128
   trainable_layers: 0  # only the last n nn.Sequential blocks and other layers afterwards will be trained
@@ -77,9 +76,9 @@ nnclr:
 
 # Setting for the linear evaluation of the NNCLR model:
 linear_eval:
-  checkpoint_load: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed22/nnclr_epoch_500.ckpt'
-  checkpoint_save: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed22/le.ckptnnclr_epoch_500.ckpt'
-  epochs: 500
+  checkpoint_load: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed22/nnclr_epoch_1000.ckpt'
+  checkpoint_save: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed42/le.ckpt'
+  epochs: 1000
   batch_size: 32
   replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis
   replicas_extraction: 1  # extract # replicas_extraction random slices from each sample

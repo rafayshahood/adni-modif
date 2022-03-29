@@ -27,7 +27,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler("debug_nnclr_{}.log".format(configuration.seed)),
+        logging.FileHandler("/mnt/ssd2/ClinicNET/log/debug_nnclr_{}.log".format(configuration.seed)),
         logging.StreamHandler()
     ]
 )
