@@ -35,6 +35,18 @@ class LinearEvaluationConfiguration:
         self.eval_labels = settings['eval_labels']
 
 
+class IndependentLinearEvaluationConfiguration:
+    """
+    Configuration for the independent linear evaluation of the NNCLR model
+    """
+    def __init__(self, settings: dict):
+        self.batch_size = settings['batch_size']
+        self.checkpoint_load = settings['checkpoint_load']
+        self.replicas = settings['replicas']
+        self.replicas_extraction = settings['replicas_extraction']
+        self.eval_labels = settings['eval_labels']
+
+
 class LRPConfiguration:
     """
     Configuration for LRP
@@ -77,6 +89,9 @@ class Configuration:
 
             # --- Linear evaluation ---
             self.le_conf = LinearEvaluationConfiguration(settings['linear_eval'])
+
+            # --- Independent linear evaluation ---
+            self.ind_le_conf = IndependentLinearEvaluationConfiguration(settings['independent_linear_eval'])
 
             # --- LRP ---
             self.lrp_conf = LRPConfiguration(settings['lrp'])

@@ -19,13 +19,13 @@ from data_processing.data_reader import DataReader
 from models.nnclr.linear_eval import LinearEval
 
 # Load a configuration file
-configuration = Configuration(Mode.evaluation)
+configuration = Configuration(Mode.independent_evaluation)
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler("/mnt/ssd2/ClinicNET/log/debug_eval_{}.log".format(configuration.seed)),
+        logging.FileHandler("/mnt/ssd2/ClinicNET/log/independent_eval_{}.log".format(configuration.seed)),
         logging.StreamHandler()
     ]
 )
@@ -41,19 +41,21 @@ data_paths = DataReader(configuration.caps_directories, configuration.info_data_
                         configuration.quality_check, configuration.valid_dataset_names, configuration.col_names)
 
 # A data loader
-data_loader = DataLoaderSSL(configuration, data_paths)
+data_loader = DataLoaderSSL(configuration, data_paths, Mode.independent_evaluation)
 
 # Use an convnext_tiny backbone
 backbone = torchvision.models.convnext_tiny()
 backbone = nn.Sequential(*list(backbone.children())[:-1])
 
 logging.info("Evaluation of the NNCLR model on the test set...")
-data_loader.mode = Mode.evaluation
-data_loader.batch_size = configuration.le_conf.batch_size
+data_loader.mode = Mode.independent_evaluation
+data_loader.batch_size = configuration.ind_le_conf.batch_size
 data_loader.create_data_loader()
 
-linear_eval = LinearEval(backbone, data_loader.classes)
-linear_eval.load(configuration.le_conf.checkpoint_save, configuration.device)  # load a saved model
+linear_eval = LinearEval(backbone, num_classes=torch.load(configuration.ind_le_conf.checkpoint_load,
+                                                          map_location=configuration.device)["classifier"][
+    "top_layer.bias"].shape[0])
+linear_eval.load(configuration.ind_le_conf.checkpoint_load, configuration.device)  # load a saved model
 linear_eval.to(configuration.device)
 
 logging.info("Test ...")
@@ -62,5 +64,4 @@ logging.info("Extended test ...")
 linear_eval.test_ext(configuration, data_loader.eval_loader)  # multiple runs for evaluation
 
 logging.info("Feature extraction ...")
-linear_eval.extract_features(configuration, data_loader.train_loader, "train")
-linear_eval.extract_features(configuration, data_loader.eval_loader, "test")
+linear_eval.extract_features(configuration, data_loader.eval_loader, "independent_eval")

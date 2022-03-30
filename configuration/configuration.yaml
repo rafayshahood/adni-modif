@@ -90,8 +90,7 @@ linear_eval:
 
 # Setting for the linear evaluation of the NNCLR model on the independent datasets:
 independent_linear_eval:
-  checkpoint: '/data_dzne_archiv2/Studien/ClinicNET/checkpoints/efficientnetb0_fine_tuned/nnclr_epoch_1000.ckpt'
-  epochs: 10
+  checkpoint_load: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed42/le.ckpt'
   batch_size: 32
   replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis
   replicas_extraction: 1  # extract # replicas_extraction random slices from each sample

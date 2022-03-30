@@ -119,6 +119,13 @@ class DataReader:
 
             # drop 'AD' samples where MMSE > (mean + 1 std)
             data = data[~((data["diagnosis"] == 'AD') & (data["mmse"] > data["threshold_pos"]))]
+        elif 'OAS' in data['participant_id'][0]:
+            logging.info("Applying MMSE quality filter on OASIS ...")
+            # drop 'CN' samples where MMSE < (mean + 1 std)
+            data = data[~((data["diagnosis"] == 'CN') & (data["mmse"] < data["threshold_neg"]))]
+
+            # drop 'AD' samples where MMSE > (mean + 1 std)
+            data = data[~((data["diagnosis"] == 'AD') & (data["mmse"] > data["threshold_pos"]))]
         else:
             logging.warning("Dataset {} is not relevant for data quality.".format(
                 " ".join(re.findall("[a-zA-Z]+", data['participant_id'][0])).split(' ')[1]))

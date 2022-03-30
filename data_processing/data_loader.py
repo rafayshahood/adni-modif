@@ -18,14 +18,16 @@ class DataLoaderSSL:
     Creates the train and test/evaluation loaders
     """
 
-    def __init__(self, configuration: Configuration, data: DataReader) -> None:
+    def __init__(self, configuration: Configuration, data: DataReader, mode: Mode) -> None:
         """
         Initialize with all required attributes.
         :type configuration: Configuration
         :type data: DataReader
+        :type mode: Mode object
         """
         self.configuration = configuration
         self.data = data
+        self.mode = mode
 
         # Values will be filled during execution:
         self.batch_size = None
@@ -42,8 +44,13 @@ class DataLoaderSSL:
         :return: A dataset (Subset) with indices that correspond to relevant diagnoses
         """
 
+        if Mode.independent_evaluation == self.mode:
+            eval_labels = self.configuration.ind_le_conf.eval_labels
+        else:
+            eval_labels = self.configuration.le_conf.eval_labels
+
         indices = [index for index, element in enumerate(dataset.dataset.diagnoses) if
-                   element in self.configuration.le_conf.eval_labels]
+                   element in eval_labels]
 
         # Select indices that refer only to evaluation labels:
         intersect = [element for element in dataset.indices if element in indices]
@@ -51,7 +58,7 @@ class DataLoaderSSL:
 
         # Targets should start with 0 and the last one should correspond to the number of classes:
         dataset.dataset.targets[:] = [None for i in range(len(dataset.dataset.targets))]
-        for pos, label in enumerate(self.configuration.le_conf.eval_labels):
+        for pos, label in enumerate(eval_labels):
             logging.info("{} is encoded as {}".format(label, pos))
             label_indices = [idx for idx, element in enumerate(diagnoses) if element == label]
             label_replacements = [pos for i in range(len(label_indices))]
@@ -120,10 +127,18 @@ class DataLoaderSSL:
 
         return train_dataset, eval_dataset
 
-    def create_data_loader(self) -> None:
+    def create_data_loader(self, independent_eval=False) -> None:
         """
         Create data loader.
         """
+        if independent_eval:
+            # Create a dataset for accessing samples:
+            self.eval_loader = DataProviderSSL(self.data.data['file'].tolist(), self.data.data['target'].tolist(),
+                                               self.data.data['diagnosis'].tolist(),
+                                               self.configuration.slices_range, self.mode)
+
+            self.train_loader = None
+            return
 
         train_dataset, eval_dataset = self.split_data(self.data.data['target'].tolist(),
                                                       self.data.data['diagnosis'].tolist())
