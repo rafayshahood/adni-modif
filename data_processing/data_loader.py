@@ -127,15 +127,17 @@ class DataLoaderSSL:
 
         return train_dataset, eval_dataset
 
-    def create_data_loader(self, independent_eval=False) -> None:
+    def create_data_loader(self) -> None:
         """
         Create data loader.
         """
-        if independent_eval:
+        if self.mode == Mode.independent_evaluation:
             # Create a dataset for accessing samples:
-            self.eval_loader = DataProviderSSL(self.data.data['file'].tolist(), self.data.data['target'].tolist(),
-                                               self.data.data['diagnosis'].tolist(),
-                                               self.configuration.slices_range, self.mode)
+            eval_dataset = DataProviderSSL(self.data.data['file'].tolist(), self.data.data['target'].tolist(),
+                                           self.data.data['diagnosis'].tolist(),
+                                           self.configuration.slices_range, self.mode)
+            self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=False,
+                                                     num_workers=8)
 
             self.train_loader = None
             return

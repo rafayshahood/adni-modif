@@ -3,6 +3,7 @@ from enum import Enum
 
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy.stats
 import seaborn as sns
 from matplotlib import pyplot
 from mlxtend.plotting import plot_confusion_matrix
@@ -82,6 +83,22 @@ def plot_roc(y, probs):
     pyplot.legend()
     # show the plot
     pyplot.show()
+
+
+def mean_confidence_interval(data, confidence=0.95):
+    # taken from https://stackoverflow.com/questions/15033511/compute-a-confidence-interval-from-sample-data
+    a = 1.0 * np.array(data)
+    n = len(a)
+    m, se = np.mean(a), scipy.stats.sem(a)
+    h = se * scipy.stats.t.ppf((1 + confidence) / 2., n-1)
+    print("Mean: {}; SE: {}".format(m, se))
+    return m, m-h, m+h, se
+
+
+# mcc = [0.4294, 0.4318, 0.4167]
+# precision = [0.5729, 0.5766, 0.5583]
+# recall = [0.6978, 0.6970, 0.6861]
+# mean_confidence_interval(mcc)
 
 
 # plot_cm_mlxtend(np.array([[357, 52, 25, 79],

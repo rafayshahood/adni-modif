@@ -121,11 +121,56 @@ appropriate places:
 </pre>
 
 
-## Current state
-- NNCLR using 4 datasets: `ADNI3`, `ADNI2`, `NIFD`, `AIBL`
+## Current state and results
+- NNCLR training: `ADNI3`, `ADNI2`, `NIFD`, `AIBL`
+- Independent evaluation: `OASIS`
+- Sample statistics of ADNI3 (N=2368, Patients=847):
+
+|           |  CN       | AD         |  MCI        |
+|-----------|-----------|------------|-------------|
+| Age       |73.99(7)   |76.96(8.31) |74.57(7.97)  |   
+| MMSE      |29.38(0.73)|20.84(4.50) |27.85(1.10)  |
+| Sex: F/M  |313/221    |52/70       |140/175      |
+
+- Sample statistics of ADNI2 (N=1836, Patients=743):
+
+|           |  CN       | AD         |  MCI        |
+|-----------|-----------|------------|-------------|
+| Age       |75.75(7.02)|76.22(7.63) |74.57(7.86)  |   
+| MMSE      |29.31(0.74)|21.07(4.29) |27.75(1.12)  |
+| Sex: F/M  |110/94     |120/163     |151/203      |
+
+- Sample statistics of AIBL (N=992, Patients=584):
+
+|           |  CN       | AD         |  MCI        |
+|-----------|-----------|------------|-------------|
+| Age       |73.51(6.41)|84.56(-.--) |76.62(6.52)  |   
+| MMSE      |29.20(0.77)|19.44(5.55) |27.17(1.25)  |
+| Sex: F/M  |239/182    |52/37       |41/62        |
+
+- Sample statistics of OASIS (N=2012, Patients=1079):
+
+|           |  CN       | AD         |
+|-----------|-----------|------------|
+| Age       |66.74(9.52)|69.20(9.29) |   
+| MMSE      |28.89(0.89)|28.97(0.25) |
+| Sex: F/M  |517/413    |172/136     |
+
+- Sample statistics of NIFD (N=614, Patients=273):
+
+|           |  CN       | BV         |  SV         |  PNFA       |
+|-----------|-----------|------------|-------------|-------------|
+| Age       |64.29(7.05)|62.09(5.82) |62.72(6.80)  |68.94(7.72)  | 
+| MMSE      |29.68(0.47)|22.56(6.22) |22.48(5.74)  |24.92(5.50)  |
+| Sex: F/M  |72/58      |23/48       |14/23        |19/16
+
 - Evaluation results:
-  - `CN` vs `AD` vs `BV` vs `MCI`: MCC is 0.4299; Recall is 0.6844; Precision is 0.5677; Confusion matrix:
-  ![Architecture](./images/cm.png)
+  - `CN` vs `AD` vs `BV` vs `MCI` over 3 learning trials using dependent test set: 
+    - MCC is 0.42+/-0.005; Recall is 0.69+/-0.004; Precision is 0.56+/-0.006
+    - Confusion matrix:
+    ![Architecture](./images/cm.png)
+  - `CN` vs `AD` using independent dataset (OASIS): 
+    - MCC is 0.03; Recall is 0.14; Precision is 0.26
 - Pre-trained NNCLR model: ...
 - Pre-trained NNCLR model + Top Linear layer: ...
 
