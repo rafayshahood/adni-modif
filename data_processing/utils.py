@@ -101,9 +101,9 @@ def mean_confidence_interval(data, confidence=0.95):
 # mean_confidence_interval(mcc)
 
 
-# plot_cm_mlxtend(np.array([[357, 52, 25, 79],
-#                           [19, 131, 1, 30],
-#                           [0, 2, 30, 0],
-#                           [87, 63, 3, 94]]
+# plot_cm_mlxtend(np.array([[360, 47, 20, 86],
+#                           [20, 125, 6, 30],
+#                           [0, 0, 32, 0],
+#                           [85, 71, 4, 87]]
 #                          ),
 #                 "Confusion matrix: \n0 - CN, 1 - AD, 2 - BV, 3 - MCI")
