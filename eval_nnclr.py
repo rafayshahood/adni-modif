@@ -41,7 +41,7 @@ data_paths = DataReader(configuration.caps_directories, configuration.info_data_
                         configuration.quality_check, configuration.valid_dataset_names, configuration.col_names)
 
 # A data loader
-data_loader = DataLoaderSSL(configuration, data_paths)
+data_loader = DataLoaderSSL(configuration, data_paths, Mode.evaluation)
 
 # Use an convnext_tiny backbone
 backbone = torchvision.models.convnext_tiny()

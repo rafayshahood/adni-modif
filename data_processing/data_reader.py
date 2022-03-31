@@ -100,6 +100,9 @@ class DataReader:
         data["threshold_neg"] = data["mean"] - data["std"]
         data = data.dropna(subset=['mmse'])
 
+        # Assure that age is less than 100 if some values are extremely large:
+        data = data[(data["age"] < 100)]
+
         if 'NIFD' in data['participant_id'][0]:
             logging.info("Applying MMSE quality filter on NIFD ...")
             # drop 'CN' samples where MMSE < (mean + 1 std)
@@ -151,6 +154,7 @@ class DataReader:
         :param data: pd.DataFrame
         :return: filtered pd.DataFrame
         """
+
         if 'MMS' in data.columns:
             data.rename(columns={"MMS": "mmse"}, errors="raise", inplace=True)
         elif 'MMSE' in data.columns:
