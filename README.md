@@ -178,9 +178,8 @@ appropriate places:
   - features dimension: 768
   - classifier block: normalization layer, flat operation, linear layer
 
-- Feature maps of 22 convolutional layers:
+- Feature maps of 22 convolutional layers (subject ADNI002S0729 diagnosed with AD, session M60):
 ![Architecture](./images/feature_maps.gif)
-
 
 - Evaluation results:
   - `CN` vs `AD` vs `BV` vs `MCI` over 3 learning trials using test sets of ADNI3, ADNI2, AIBL, NIFD: 
