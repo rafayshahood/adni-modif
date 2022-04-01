@@ -169,14 +169,23 @@ appropriate places:
   - 1,000 epochs
   - a batch size of 128
   - nearest neighbour size: 8192
-  - random transformations: resized crop, erasing, horizontal flip
+  - ConvNeXt Tiny CNN model with 7x7 filter kernel
+  - data preparation for each sample:
+    - a random slice across coronal plane within the middle region of the brain is selected
+    - each slice is replicated 3 times to mirror RGB channels
+  - random transformations  are applied to get 2 views of the same sample:
+    - resized crop
+    - erasing
+    - horizontal flip
+
 
 - Training of a classifier blocks:
+  - ConvNeXt Tiny CNN model serves as a feature extractor and is not trained
   - training sets of ADNI3, ADNI2, AIBL, NIFD
   - 1,000 epochs
   - a batch size of 32
-  - features dimension: 768
-  - classifier block: normalization layer, flat operation, linear layer
+  - features dimension from ConvNeXt Tiny CNN model: 768
+  - classifier block that is trained: normalization layer, flat operation, linear layer
 
 - Feature maps of 22 convolutional layers (subject ADNI002S0729 diagnosed with AD, session M60):
 ![Architecture](./images/feature_maps.gif)
@@ -188,6 +197,10 @@ appropriate places:
     ![Architecture](./images/cm.png)
   - `CN` vs `AD` using the independent dataset OASIS: 
     - MCC is 0.03; Recall is 0.14; Precision is 0.26
+
+## Next steps
+- ADNI GO for the independent evaluation
+- Visualization of image regions that constitute the highest impact on the classifier's prediction for one particular sample
 
 ## References:
 [1] Dwibedi, D., Aytar, Y., Tompson, J., Sermanet, P., & Zisserman, A. (2021).
