@@ -185,7 +185,7 @@ appropriate places:
   - 1,000 epochs
   - a batch size of 32
   - features dimension from ConvNeXt Tiny CNN model: 768
-  - classifier block that is trained: normalization layer, flat operation, linear layer
+  - classifier block that is trained: normalisation layer, flat operation, linear layer
 
 - Feature maps of 22 convolutional layers (subject ADNI002S0729 diagnosed with AD, session M60):
 ![Architecture](./images/feature_maps.gif)
@@ -200,8 +200,8 @@ appropriate places:
 
 ## Next steps
 - ADNI GO for the independent evaluation
-- Visualization of features using t-SNE
-- Visualization of image regions that constitute the highest impact on the classifier's prediction for one particular sample
+- Visualisation of features using t-SNE
+- Visualisation of image regions that constitute the highest impact on the classifier's prediction for one particular sample
 
 ## References:
 [1] Dwibedi, D., Aytar, Y., Tompson, J., Sermanet, P., & Zisserman, A. (2021).
