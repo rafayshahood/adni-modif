@@ -4,45 +4,59 @@ import matplotlib.pyplot as plt
 from torchvision import utils
 
 
-class Filter:
+class FeatureMap:
 
-    def __init__(self, model: nn.Sequential, architecture: str = "efficientnet_b0") -> None:
+    def __init__(self, model: nn.Sequential) -> None:
         self.model = model
-        self.model_weights = []
         self.conv_layers = []
 
-    def set_conv_weights(self, mbconv: int = 3, block: int = 1):
+    def extract_conv_weights(self):
 
         print(self.model)
 
         # get a model with its all sub-components
-        model_children = list(self.model.children())
+        model_children = list(list(self.model.children())[0])
 
-        for i in range(3, 7):
-            # get a conv layer and its weights
-            conv_layer = model_children[0][i][block].block[1][0]
-            self.model_weights.append(conv_layer.weight)
-            self.conv_layers.append(conv_layer)
+        counter = 0
+        for i in range(len(model_children)):
+            for m in model_children[i].modules():
+                if type(m) == nn.Conv2d:
+                    counter += 1
+                    self.conv_layers.append(m)
+            # elif type(model_children[i]) == nn.Sequential:
+            #     for j in range(len(model_children[i])):
+            #         for child in model_children[i][j].children():
+            #             if type(child) == nn.Conv2d:
+            #                 counter += 1
+            #                 self.conv_layers.append(child)
 
-    def visualize_filters(self, ch=0, allkernels=False, nrow=32, padding=1):
+        print(f"Total convolutional layers: {counter}")
 
-        for i, filters_weigth in enumerate(self.model_weights):
-            tensor = filters_weigth.data.clone()
-            n, c, w, h = tensor.shape
+    def visualize_feature_maps(self, sample):
+        # pass the image through all the layers
+        results = [self.conv_layers[0](sample)]
+        for i in range(1, len(self.conv_layers)):
+            # pass the result from the last layer to the next layer
+            results.append(self.conv_layers[i](results[-1]))
+        # make a copy of the `results`
+        outputs = results.copy()
 
-            if allkernels:
-                tensor = tensor.view(n * c, -1, w, h)
-            tensor = tensor[:, ch, :, :].unsqueeze(dim=1)
-
-            rows = np.min((tensor.shape[0] // nrow + 1, 32))
-            grid = utils.make_grid(tensor, nrow=nrow, normalize=True, padding=padding)
-            plt.figure(figsize=(nrow, rows))
-            plt.imshow(grid.numpy().transpose((1, 2, 0)))
-
-            plt.axis('off')
-            plt.ioff()
-            #plt.show()
-            plt.savefig('filter_weights_{}.png'.format(i))
+        for num_layer in range(len(outputs)):
+            plt.figure(figsize=(30, 30))
+            layer_viz = outputs[num_layer]
+            layer_viz = layer_viz.data.detach().cpu()
+            print(layer_viz.size())
+            c = 1
+            for i, filter in enumerate(layer_viz):
+                if i % (layer_viz.shape[0] / 16) == 0:
+                    plt.subplot(4, 4, c)
+                    plt.imshow(filter, cmap='gray')
+                    plt.axis("off")
+                    c += 1
+                if c == 17:
+                    break
+            plt.savefig(f"./output/feature_maps/layer_{num_layer}.png")
+            plt.close()
 
 
 

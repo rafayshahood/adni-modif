@@ -2,7 +2,7 @@
 
 Explainable Differential Diagnosis of Dementia using Self-supervised Learning.
 The proposed method is based on Nearest-Neighbor Contrastive Learning of Visual
-Representations (NNCLR) [1] using ConvNeXt Tiny [2].
+Representations (NNCLR) [1] using ConvNeXt Tiny [2] with 7x7 filter kernels.
 
 The following image visualizes the whole architecture:
 
@@ -164,15 +164,31 @@ appropriate places:
 | MMSE      |29.68(0.47)|22.56(6.22) |22.48(5.74)  |24.92(5.50)  |
 | Sex: F/M  |72/58      |23/48       |14/23        |19/16
 
+- NNCLR training:
+  - training sets of ADNI3, ADNI2, AIBL, NIFD
+  - 1,000 epochs
+  - a batch size of 128
+  - nearest neighbour size: 8192
+  - random transformations: resized crop, erasing, horizontal flip
+
+- Training of a classifier blocks:
+  - training sets of ADNI3, ADNI2, AIBL, NIFD
+  - 1,000 epochs
+  - a batch size of 32
+  - features dimension: 768
+  - classifier block: normalization layer, flat operation, linear layer
+
+- Feature maps of 22 convolutional layers:
+![Architecture](./images/feature_maps.gif)
+
+
 - Evaluation results:
-  - `CN` vs `AD` vs `BV` vs `MCI` over 3 learning trials using dependent test set: 
+  - `CN` vs `AD` vs `BV` vs `MCI` over 3 learning trials using test sets of ADNI3, ADNI2, AIBL, NIFD: 
     - MCC is 0.42+/-0.005; Recall is 0.69+/-0.004; Precision is 0.56+/-0.006
     - Confusion matrix:
     ![Architecture](./images/cm.png)
-  - `CN` vs `AD` using independent dataset (OASIS): 
+  - `CN` vs `AD` using the independent dataset OASIS: 
     - MCC is 0.03; Recall is 0.14; Precision is 0.26
-- Pre-trained NNCLR model: ...
-- Pre-trained NNCLR model + Top Linear layer: ...
 
 ## References:
 [1] Dwibedi, D., Aytar, Y., Tompson, J., Sermanet, P., & Zisserman, A. (2021).
