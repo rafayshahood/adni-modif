@@ -200,6 +200,7 @@ appropriate places:
 
 ## Next steps
 - ADNI GO for the independent evaluation
+- Visualization of features using t-SNE
 - Visualization of image regions that constitute the highest impact on the classifier's prediction for one particular sample
 
 ## References:
