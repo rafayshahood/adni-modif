@@ -172,8 +172,7 @@ appropriate places:
   - ConvNeXt Tiny CNN model with 7x7 filter kernel
   - data preparation for each sample:
     - a random slice across coronal plane within the middle region of the brain is selected
-    - each slice is replicated 3 times to mirror RGB channels
-  - random transformations  are applied to get 2 views of the same sample:
+  - random transformations `t` are applied sequentially with `p(t)=0.5` to get 2 views of the same sample:
     - resized crop
     - erasing
     - horizontal flip
