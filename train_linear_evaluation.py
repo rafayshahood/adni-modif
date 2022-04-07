@@ -47,6 +47,7 @@ data_loader = DataLoaderSSL(configuration, data_paths, Mode.evaluation)
 
 # Use an efficientB3/convnext_tiny backbone
 backbone = torchvision.models.convnext_tiny()
+backbone.features[0][0] = nn.Conv2d(1, 96, (4, 4), (4, 4))
 backbone = nn.Sequential(*list(backbone.children())[:-1])
 
 # Training procedure:

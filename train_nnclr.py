@@ -45,9 +45,11 @@ data_paths = DataReader(configuration.caps_directories, configuration.info_data_
 # A data loader
 data_loader = DataLoaderSSL(configuration, data_paths, Mode.training)
 
-# Use an efficientB3/convnext_tiny backbone
+# Use an convnext_tiny backbone
 backbone = torchvision.models.convnext_tiny(pretrained=True)  # pretrained model is loaded
+backbone.features[0][0] = nn.Conv2d(1, 96, (4, 4), (4, 4))
 backbone = nn.Sequential(*list(backbone.children())[:-1])  # remove classification layer
+print(backbone)
 
 #  Training procedure:
 logging.info("NNCLR Training ...")

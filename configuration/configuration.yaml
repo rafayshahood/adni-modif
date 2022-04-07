@@ -1,5 +1,5 @@
 # General settings
-seed: 42
+seed: 32
 dry_run: False  # used for testing purposes; if True, then only one training iteration is performed
 
 # Data settings:
@@ -54,9 +54,9 @@ data:
 nnclr:
   checkpoint: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/'
   checkpoint_resume: ''
-  epochs: 1000
-  save_nepoch: 50  # a model will be saved every nth epoch
-  batch_size: 128
+  epochs: 2000
+  save_nepoch: 100  # a model will be saved every nth epoch
+  batch_size: 150
   trainable_layers: 0  # only the last n nn.Sequential blocks and other layers afterwards will be trained
   data:
     # A list of the paths to the CAPS directories:
@@ -76,8 +76,8 @@ nnclr:
 
 # Setting for the linear evaluation of the NNCLR model:
 linear_eval:
-  checkpoint_load: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed22/nnclr_epoch_1000.ckpt'
-  checkpoint_save: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed42/le.ckpt'
+  checkpoint_load: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed32/one_slice_nnclr_epoch_2000.ckpt'
+  checkpoint_save: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed32/one_slice_le.ckpt'
   epochs: 1000
   batch_size: 32
   replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis
@@ -90,7 +90,7 @@ linear_eval:
 
 # Setting for the linear evaluation of the NNCLR model on the independent datasets:
 independent_linear_eval:
-  checkpoint_load: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed42/le.ckpt'
+  checkpoint_load: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed32/seven_slices_le.ckpt'
   batch_size: 128
   replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis
   replicas_extraction: 1  # extract # replicas_extraction random slices from each sample
