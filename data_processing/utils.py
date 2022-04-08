@@ -179,9 +179,9 @@ def plot_3d_tsne(data: np.array, perplexity: int, class_mapping: dict, n_vis: in
     fig.show()
 
 
-data = np.load("/mnt/ssd2/ClinicNET/features/nifd_adni_aibl_train.npy")
-plot_2d_tsne(data, class_mapping={0:'CN', 1:'AD', 2:'BV', 3:'MCI'}, n_vis=100, perplexities=[5, 15, 30, 50])
-plot_3d_tsne(data, class_mapping={0:'CN', 1:'AD', 2:'BV', 3:'MCI'}, n_vis=100, perplexity=30)
+#data = np.load("/mnt/ssd2/ClinicNET/features/nifd_adni_aibl_train.npy")
+#plot_2d_tsne(data, class_mapping={0:'CN', 1:'AD', 2:'BV', 3:'MCI'}, n_vis=100, perplexities=[5, 15, 30, 50])
+#plot_3d_tsne(data, class_mapping={0:'CN', 1:'AD', 2:'BV', 3:'MCI'}, n_vis=100, perplexity=30)
 
 
 
