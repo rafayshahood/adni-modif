@@ -3,6 +3,11 @@ from enum import Enum
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import plotly.express as px
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE as TSNE_sklearn
+from tsnecuda import TSNE
 import scipy.stats
 import seaborn as sns
 from matplotlib import pyplot
@@ -93,6 +98,83 @@ def mean_confidence_interval(data, confidence=0.95):
     h = se * scipy.stats.t.ppf((1 + confidence) / 2., n-1)
     print("Mean: {}; SE: {}".format(m, se))
     return m, m-h, m+h, se
+
+
+def plot_2d_tsne(data: np.array, class_mapping: dict, n_vis: int = 20):
+    """
+    Creates a t-SNE visualisation for 4 perplexity values.
+    :param data: Array containing data and class
+    :param class_mapping: a mapping from int ot str
+    :param n_vis: samples per each class that are used for visualisation
+    """
+    X = data[:, :-1]  #
+
+    if data.shape[1] > 50:
+        pca = PCA(n_components=50)
+        pca.fit(X)
+        X = pca.transform(X)
+
+    Y = data[:, -1]  # class labels
+    C = len(np.unique(Y))
+
+    perplexities = [5, 30, 50, 100]
+
+    x_embeded_list = []
+    for i, perplexity in enumerate(perplexities):
+        x_embeded = TSNE(perplexity=perplexity, n_iter=10000).fit_transform(X)
+        df = pd.DataFrame(x_embeded, columns=["X1", "X2"])
+        df["Perplexity"] = perplexity
+        df["Y"] = Y
+        x_embeded_list.append(df)
+
+    df = pd.concat(x_embeded_list)
+    df.replace({"Y": class_mapping}, inplace=True)  # map int values to str values
+    df.groupby('Y').apply(lambda x: x.sample(n_vis)).reset_index(drop=True, inplace=True)  # sample n samples for viualisation
+    g = sns.FacetGrid(df, col="Perplexity", col_wrap=2, height=2)
+    g.map_dataframe(sns.scatterplot, x="X1", y="X2", hue="Y", palette=sns.color_palette("hls", C), s=5, style="Y")
+    g.add_legend()
+    g.set(xticks=[])
+    g.set(yticks=[])
+    g.set(xlabel=None)
+    g.set(ylabel=None)
+    plt.savefig("../images/tsne_2D.pdf", format="pdf")
+
+
+def plot_3d_tsne(data: np.array, class_mapping: dict, n_vis: int = None):
+    """
+    Creates a t-SNE visualisation for 4 perplexity values.
+    :param data: Array containing data and class
+    :param class_mapping: a mapping from int ot str
+    :param n_vis: samples per each class that are used for visualisation
+    """
+    X = data[:, :-1]  # features
+
+    if data.shape[1] > 50:
+        pca = PCA(n_components=50)
+        pca.fit(X)
+        X = pca.transform(X)
+
+    Y = data[:, -1]  # class labels
+    projections = TSNE_sklearn(n_components=3, perplexity=100, n_iter=10000).fit_transform(X)
+    df = pd.DataFrame(projections, columns=["X", "W", "Z"])
+    df["Y"] = Y
+
+    df.replace({"Y": class_mapping}, inplace=True)  # map int values to str values
+    if n_vis is not None:
+        df.groupby('Y').apply(lambda x: x.sample(n_vis)).reset_index(drop=True,
+                                                                     inplace=True)  # sample n samples for viualisation
+    fig = px.scatter_3d(
+        projections, x=0, y=1, z=2,
+        color=df.Y, labels={'color': 'Y'}
+    )
+    fig.update_traces(marker_size=4)
+    fig.show()
+
+
+data = np.load("/mnt/ssd2/ClinicNET/features/nifd_adni_aibl_test.npy")
+plot_2d_tsne(data, {0:'CN', 1:'AD', 2:'BV', 3:'MCI'})
+plot_3d_tsne(data, {0:'CN', 1:'AD', 2:'BV', 3:'MCI'})
+
 
 
 # mcc = [0.4294, 0.4318, 0.4167]
