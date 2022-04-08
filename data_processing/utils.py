@@ -100,28 +100,33 @@ def mean_confidence_interval(data, confidence=0.95):
     return m, m-h, m+h, se
 
 
-def plot_2d_tsne(data: np.array, class_mapping: dict, n_vis: int = 20):
+def plot_2d_tsne(data: np.array, perplexities: list, class_mapping: dict, n_vis: int = None):
     """
     Creates a t-SNE visualisation for 4 perplexity values.
     :param data: Array containing data and class
+    :param perplexities: related to the number of nearest neighbors
     :param class_mapping: a mapping from int ot str
     :param n_vis: samples per each class that are used for visualisation
     """
-    X = data[:, :-1]  #
 
-    if data.shape[1] > 50:
+    df = pd.DataFrame(data)
+    if n_vis is not None:
+        df = df.groupby(df.columns[data.shape[1]-1]).apply(lambda x: x.sample(n_vis))
+        df.reset_index(drop=True, inplace=True)  # sample n samples for visualisation
+
+    X = df.iloc[:, :-1]  #
+
+    if df.shape[1] > 50:
         pca = PCA(n_components=50)
         pca.fit(X)
         X = pca.transform(X)
 
-    Y = data[:, -1]  # class labels
+    Y = df.iloc[:, -1]  # class labels
     C = len(np.unique(Y))
-
-    perplexities = [5, 30, 50, 100]
 
     x_embeded_list = []
     for i, perplexity in enumerate(perplexities):
-        x_embeded = TSNE(perplexity=perplexity, n_iter=10000).fit_transform(X)
+        x_embeded = TSNE_sklearn(perplexity=perplexity, n_iter=10000).fit_transform(X)
         df = pd.DataFrame(x_embeded, columns=["X1", "X2"])
         df["Perplexity"] = perplexity
         df["Y"] = Y
@@ -129,7 +134,6 @@ def plot_2d_tsne(data: np.array, class_mapping: dict, n_vis: int = 20):
 
     df = pd.concat(x_embeded_list)
     df.replace({"Y": class_mapping}, inplace=True)  # map int values to str values
-    df.groupby('Y').apply(lambda x: x.sample(n_vis)).reset_index(drop=True, inplace=True)  # sample n samples for viualisation
     g = sns.FacetGrid(df, col="Perplexity", col_wrap=2, height=2)
     g.map_dataframe(sns.scatterplot, x="X1", y="X2", hue="Y", palette=sns.color_palette("hls", C), s=5, style="Y")
     g.add_legend()
@@ -140,29 +144,33 @@ def plot_2d_tsne(data: np.array, class_mapping: dict, n_vis: int = 20):
     plt.savefig("../images/tsne_2D.pdf", format="pdf")
 
 
-def plot_3d_tsne(data: np.array, class_mapping: dict, n_vis: int = None):
+def plot_3d_tsne(data: np.array, perplexity: int, class_mapping: dict, n_vis: int = None):
     """
     Creates a t-SNE visualisation for 4 perplexity values.
     :param data: Array containing data and class
+    :param perplexities: related to the number of nearest neighbors
     :param class_mapping: a mapping from int ot str
     :param n_vis: samples per each class that are used for visualisation
     """
-    X = data[:, :-1]  # features
+
+    df = pd.DataFrame(data)
+    if n_vis is not None:
+        df = df.groupby(df.columns[data.shape[1] - 1]).apply(lambda x: x.sample(n_vis))
+        df.reset_index(drop=True, inplace=True)  # sample n samples for visualisation
+
+    X = df.iloc[:, :-1]  # features
 
     if data.shape[1] > 50:
         pca = PCA(n_components=50)
         pca.fit(X)
         X = pca.transform(X)
 
-    Y = data[:, -1]  # class labels
-    projections = TSNE_sklearn(n_components=3, perplexity=100, n_iter=10000).fit_transform(X)
+    Y = df.iloc[:, -1]  # class labels
+    projections = TSNE_sklearn(n_components=3, perplexity=perplexity, n_iter=10000).fit_transform(X)
     df = pd.DataFrame(projections, columns=["X", "W", "Z"])
     df["Y"] = Y
 
     df.replace({"Y": class_mapping}, inplace=True)  # map int values to str values
-    if n_vis is not None:
-        df.groupby('Y').apply(lambda x: x.sample(n_vis)).reset_index(drop=True,
-                                                                     inplace=True)  # sample n samples for viualisation
     fig = px.scatter_3d(
         projections, x=0, y=1, z=2,
         color=df.Y, labels={'color': 'Y'}
@@ -171,9 +179,9 @@ def plot_3d_tsne(data: np.array, class_mapping: dict, n_vis: int = None):
     fig.show()
 
 
-data = np.load("/mnt/ssd2/ClinicNET/features/nifd_adni_aibl_test.npy")
-plot_2d_tsne(data, {0:'CN', 1:'AD', 2:'BV', 3:'MCI'})
-plot_3d_tsne(data, {0:'CN', 1:'AD', 2:'BV', 3:'MCI'})
+data = np.load("/mnt/ssd2/ClinicNET/features/nifd_adni_aibl_train.npy")
+plot_2d_tsne(data, class_mapping={0:'CN', 1:'AD', 2:'BV', 3:'MCI'}, n_vis=100, perplexities=[5, 15, 30, 50])
+plot_3d_tsne(data, class_mapping={0:'CN', 1:'AD', 2:'BV', 3:'MCI'}, n_vis=100, perplexity=30)
 
 
 
