@@ -16,7 +16,7 @@ from torch.backends import cudnn
 from configuration.configuration import Configuration
 from data_processing.data_loader import DataLoaderSSL, Mode
 from data_processing.data_reader import DataReader
-from models.nnclr.linear_eval import LinearEval
+from models.nnclr.linear_eval import ClassificationModel
 
 # Load a configuration file
 configuration = Configuration(Mode.independent_evaluation)
@@ -49,13 +49,13 @@ backbone = nn.Sequential(*list(backbone.children())[:-1])
 
 logging.info("Evaluation of the NNCLR model on the test set...")
 data_loader.mode = Mode.independent_evaluation
-data_loader.batch_size = configuration.ind_le_conf.batch_size
+data_loader.batch_size = configuration.ind_eval_conf.batch_size
 data_loader.create_data_loader()
 
-linear_eval = LinearEval(backbone, num_classes=torch.load(configuration.ind_le_conf.checkpoint_load,
-                                                          map_location=configuration.device)["classifier"][
+linear_eval = ClassificationModel(backbone, num_classes=torch.load(configuration.ind_eval_conf.checkpoint_load,
+                                                                   map_location=configuration.device)["classifier"][
     "top_layer.bias"].shape[0])
-linear_eval.load(configuration.ind_le_conf.checkpoint_load, configuration.device)  # load a saved model
+linear_eval.load(configuration.ind_eval_conf.checkpoint_load, configuration.device)  # load a saved model
 linear_eval.to(configuration.device)
 
 logging.info("Test ...")

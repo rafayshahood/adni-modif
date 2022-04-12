@@ -45,9 +45,9 @@ class DataLoaderSSL:
         """
 
         if Mode.independent_evaluation == self.mode:
-            eval_labels = self.configuration.ind_le_conf.eval_labels
+            eval_labels = self.configuration.ind_eval_conf.eval_labels
         else:
-            eval_labels = self.configuration.le_conf.eval_labels
+            eval_labels = self.configuration.cls_conf.eval_labels
 
         indices = [index for index, element in enumerate(dataset.dataset.diagnoses) if
                    element in eval_labels]
@@ -136,7 +136,7 @@ class DataLoaderSSL:
             eval_dataset = DataProviderSSL(self.data.data['file'].tolist(), self.data.data['target'].tolist(),
                                            self.data.data['diagnosis'].tolist(),
                                            self.configuration.slices_range, self.mode)
-            self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=False,
+            self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=True,
                                                      num_workers=8)
 
             self.train_loader = None
@@ -163,4 +163,4 @@ class DataLoaderSSL:
         self.train_loader = torch_data.DataLoader(train_dataset,
                                                   batch_size=self.batch_size,
                                                   shuffle=True, num_workers=8)
-        self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=False, num_workers=8)
+        self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=True, num_workers=8)

@@ -17,7 +17,7 @@ from zennit.torchvision import VGGCanonizer, ResNetCanonizer
 
 from configuration.configuration import Configuration
 from data_processing.data_loader import DataLoaderSSL
-from models.nnclr.linear_eval import LinearEval
+from models.nnclr.linear_eval import ClassificationModel
 
 MODELS = {
     'vgg16': (vgg16, VGGCanonizer),
@@ -85,7 +85,7 @@ def main(
     resnet = torchvision.models.efficientnet_b4()
     resnet = nn.Sequential(*list(resnet.children())[:-1])
 
-    model = LinearEval(resnet, n_outputs, configuration.nnclr_conf.is_binary_label)
+    model = ClassificationModel(resnet, n_outputs, configuration.nnclr_conf.is_binary_label)
     model.load(configuration.nnclr_conf.checkpoint_le, configuration.device)
     model.to(configuration.device)
     model.eval()

@@ -21,7 +21,7 @@ class NNCLRConfiguration:
         self.trainable_layers = settings['trainable_layers']
 
 
-class LinearEvaluationConfiguration:
+class ClassificationModelConfiguration:
     """
     Configuration for the linear evaluation of the NNCLR model
     """
@@ -33,9 +33,10 @@ class LinearEvaluationConfiguration:
         self.replicas = settings['replicas']
         self.replicas_extraction = settings['replicas_extraction']
         self.eval_labels = settings['eval_labels']
+        self.comparison = settings['comparison']
 
 
-class IndependentLinearEvaluationConfiguration:
+class IndependentEvaluationConfiguration:
     """
     Configuration for the independent linear evaluation of the NNCLR model
     """
@@ -67,7 +68,7 @@ class Configuration:
             settings = yaml.load(stream, yaml.Loader)
 
             # --- general ---
-            self.seed = settings['seed']
+            self.seeds = settings['seeds']
             self.dry_run = settings['dry_run']
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -88,10 +89,10 @@ class Configuration:
             self.nnclr_conf = NNCLRConfiguration(settings['nnclr'])
 
             # --- Linear evaluation ---
-            self.le_conf = LinearEvaluationConfiguration(settings['linear_eval'])
+            self.cls_conf = ClassificationModelConfiguration(settings['classifier'])
 
             # --- Independent linear evaluation ---
-            self.ind_le_conf = IndependentLinearEvaluationConfiguration(settings['independent_linear_eval'])
+            self.ind_eval_conf = IndependentEvaluationConfiguration(settings['independent_eval'])
 
             # --- LRP ---
             self.lrp_conf = LRPConfiguration(settings['lrp'])

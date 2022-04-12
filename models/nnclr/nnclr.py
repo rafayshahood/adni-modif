@@ -3,11 +3,26 @@ from typing import Tuple
 
 import lightly.loss as loss
 import torch
+import torchvision
 from lightly.models.modules import NNCLRProjectionHead, NNCLRPredictionHead, NNMemoryBankModule
 from torch import nn
 from torch.utils import data as torch_data
 
 from configuration.configuration import Configuration
+
+
+def get_convnext():
+    """
+    Returns a ConvNeXt tiny backbone with only one channel instead of three as input
+    :return: ConvNeXt
+    """
+    # Use an convnext_tiny backbone
+    backbone = torchvision.models.convnext_tiny(pretrained=True)  # pretrained model is loaded
+    backbone.features[0][0] = nn.Conv2d(1, 96, (4, 4), (4, 4))
+    backbone = nn.Sequential(*list(backbone.children())[:-1])  # remove classification layer
+    print(backbone)
+
+    return backbone
 
 
 def trace_handler(prof):
@@ -19,6 +34,7 @@ class NNCLR(nn.Module):
     """
     NNCRL model
     """
+
     def __init__(self, backbone: nn.Sequential,
                  num_ftrs: int = 768,  # 1536
                  proj_hidden_dim: int = 768,
@@ -40,6 +56,9 @@ class NNCLR(nn.Module):
 
         if freeze_layers > 0:
             self.freeze_layers(last_mbconv_blocks=freeze_layers)
+
+        logging.info("# trainable parameters: {}".format(sum(p.numel() for p in self.parameters() if p.requires_grad)))
+        self.name = "cls_f-{}_fr-{}".format(num_ftrs, freeze_layers)
 
     def freeze_layers(self, last_mbconv_blocks: int = 2):
         """
@@ -79,11 +98,12 @@ class NNCLR(nn.Module):
         backbone_state_dict = self.backbone.state_dict()
         projection_mlp_state_dict = self.projection_head.state_dict()
         prediction_mlp_state_dict = self.prediction_head.state_dict()
+        out = "{}{}_e-{}".format(file_path, self.name, epoch)
         torch.save({"backbone": backbone_state_dict,
                     "projection": projection_mlp_state_dict,
                     "prediction": prediction_mlp_state_dict},
-                   file_path+"nnclr_epoch_{}.ckpt".format(str(epoch)))
-        logging.info("Checkpoint: {} is saved".format(str(file_path)))
+                   out)
+        logging.info("Checkpoint: {} is saved".format(out))
 
     def load(self, file_path: str) -> None:
         """
@@ -122,6 +142,7 @@ class NNCLR(nn.Module):
         :param configuration: Configuration
         :param data_loader: DataLoader
         """
+        logging.info("NNCLR Training ...")
         for epoch in range(1, configuration.nnclr_conf.epochs + 1):
             total_loss = 0
 

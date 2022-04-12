@@ -188,13 +188,16 @@ appropriate places:
   - classifier block that is trained: normalisation layer, flat operation, linear layer
 
 - Feature maps of 22 convolutional layers (subject ADNI002S0729 diagnosed with AD, session M60):
-![Architecture](./images/feature_maps.gif)
+![Feature maps](./images/feature_maps.gif)
+
+- t-SNE visualisation of features learned by NNCLR (train set):
+![tSNE maps](./images/tsne_2D.png)
 
 - Evaluation results:
   - `CN` vs `AD` vs `BV` vs `MCI` over 3 learning trials using test sets of ADNI3, ADNI2, AIBL, NIFD: 
     - MCC is 0.42+/-0.005; Recall is 0.69+/-0.004; Precision is 0.56+/-0.006
     - Confusion matrix:
-    ![Architecture](./images/cm.png)
+    ![Confusion matrix maps](./images/cm.png)
   - `CN` vs `AD` using the independent dataset OASIS: 
     - MCC is 0.03; Recall is 0.14; Precision is 0.26
 

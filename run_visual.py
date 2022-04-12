@@ -1,9 +1,13 @@
+import re
+
+import numpy as np
+import pandas as pd
 import torch
 import torchvision
 from torch import nn
 
 from models.nnclr.nnclr import NNCLR
-from visual.Visual import FeatureMap
+from visual.Visual import FeatureMap, plot_2d_tsne, plot_3d_tsne, plot_loss_figure, plot_cm_mlxtend
 
 FILE = "/data_dzne_archiv2/Studien/ClinicNET/data/adni2/CAPS/subjects/sub-ADNI002S0729/ses-M60/deeplearning_prepare_data/image_based/t1_linear/sub-ADNI002S0729_ses-M60_T1w_space-MNI152NLin2009cSym_desc-Crop_res-1x1x1_T1w.pt"
 LABEL = "AD"
@@ -22,12 +26,35 @@ def get_item(file_path: str):
     return view
 
 
-sample = get_item(FILE)
-backbone = torchvision.models.convnext_tiny()
-backbone = nn.Sequential(*list(backbone.children())[:-1])
-backbone = NNCLR.load_state_dict_(backbone,
-                                  '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/nnclr_epoch_1000.ckpt')
+# sample = get_item(FILE)
+# backbone = torchvision.models.convnext_tiny()
+# backbone = nn.Sequential(*list(backbone.children())[:-1])
+# backbone = NNCLR.load_state_dict_(backbone,
+#                                   '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/nnclr_epoch_1000.ckpt')
+#
+# visual_filter = FeatureMap(backbone)
+# visual_filter.extract_conv_weights()
+# visual_filter.visualize_feature_maps(sample)
 
-visual_filter = FeatureMap(backbone)
-visual_filter.extract_conv_weights()
-visual_filter.visualize_feature_maps(sample)
+# plot the loss of NNCLR:
+plot_loss_figure(["/mnt/ssd2/ClinicNET/log/version3/debug_nnclr_32.log"],
+                 suffix="loss_nnclr")
+
+# plot the loss of the classification model:
+files = ["/mnt/ssd2/ClinicNET/log/version1/debug_le_22.log",
+         "/mnt/ssd2/ClinicNET/log/version1/debug_le_32.log",
+         "/mnt/ssd2/ClinicNET/log/version1/debug_le_42.log"]
+plot_loss_figure(files, suffix="loss_classification_model")
+
+plot_cm_mlxtend(np.array([[368, 30, 20, 79],
+                          [19, 130, 7, 27],
+                          [3, 0, 29, 0],
+                          [105, 60, 6, 100]]
+                         ),
+                "Confusion matrix: \n0 - CN, 1 - AD, 2 - BV, 3 - MCI",
+                suffix="cm")
+
+# visualise features using t-SNE:
+data = np.load("/mnt/ssd2/ClinicNET/features/nifd_adni_aibl_train.npy")
+plot_2d_tsne(data, labels_filter=["AD", "BV"], class_mapping={0:'CN', 1:'AD', 2:'BV', 3:'MCI'}, perplexities=[5, 15, 30, 50])
+plot_3d_tsne(data, labels_filter=["AD", "BV"], class_mapping={0:'CN', 1:'AD', 2:'BV', 3:'MCI'}, perplexity=30)

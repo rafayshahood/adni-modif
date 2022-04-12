@@ -25,19 +25,20 @@ class LayerNorm2d(nn.LayerNorm):
         return x
 
 
-class LinearEval(torch.nn.Module):
+class ClassificationModel(torch.nn.Module):
     """
     Perform a linear evaluation of the NNCLR model
     """
 
     def __init__(self, feature_extractor: Sequential, num_classes: int, class_weights: ndarray = None,
-                 num_ftrs: int = 768):
+                 num_ftrs: int = 768, freeze_backbone: bool = True):
         """
         Initialize with the provided attributes
         :param feature_extractor: a NNCLR backbone
         :param num_classes: the number of classes
         """
-        super(LinearEval, self).__init__()
+        super(ClassificationModel, self).__init__()
+        self.freeze_backbone = freeze_backbone
         self.num_classes = num_classes
         self.feature_extractor = feature_extractor
         norm_layer = partial(LayerNorm2d, eps=1e-6)
@@ -60,6 +61,7 @@ class LinearEval(torch.nn.Module):
             self.ce = torch.nn.CrossEntropyLoss()
 
         self.optimizer = Adam([{"params": self.classifier.parameters(), "lr": 0.001}])
+        self.name = "cls_c-{}_f-{}_fr-{}".format(num_classes, num_ftrs, freeze_backbone)
 
     def forward(self, x, only_features=False, lrp_run=False):
         """
@@ -69,7 +71,7 @@ class LinearEval(torch.nn.Module):
         :param lrp_run: If True then gradient is required, otherwise not
         :return: torch.Tensor (features or predictions)
         """
-        if not lrp_run:
+        if not lrp_run and self.freeze_backbone:
             with torch.no_grad():
                 out = self.feature_extractor(x)
         else:
@@ -101,7 +103,7 @@ class LinearEval(torch.nn.Module):
         classifier_dict = self.classifier.state_dict()
         torch.save({"feature_extractor": feature_extractor_dict,
                     "classifier": classifier_dict},
-                   file_path)
+                   "{}{}_e-{}".format(file_path, self.name, epoch))
         logging.info("Checkpoint: {} is saved".format(str(file_path)))
 
     def train_(self, configuration: Configuration, train_loader: torch_data.DataLoader) -> None:
@@ -110,11 +112,15 @@ class LinearEval(torch.nn.Module):
         :param configuration: Configuration
         :param train_loader: torch.utils.data.DataLoader
         """
+        logging.info("Training of the classification model ...")
         model_children = list(self.feature_extractor.children())
         for idx, child in enumerate(model_children):
             for param in child.parameters():
                 param.requires_grad = False
-        self.feature_extractor.eval()
+        if self.freeze_backbone:
+            self.feature_extractor.eval()
+        else:
+            self.feature_extractor.train()
         self.classifier.train()
         logging.info("# trainable parameters in backbone: {}".format(
             sum(p.numel() for p in self.feature_extractor.parameters() if p.requires_grad)))
@@ -122,7 +128,7 @@ class LinearEval(torch.nn.Module):
             sum(p.numel() for p in self.classifier.parameters() if p.requires_grad)))
         logging.info("# trainable parameters: {}".format(sum(p.numel() for p in self.parameters() if p.requires_grad)))
 
-        for epoch in range(1, configuration.le_conf.epochs + 1):
+        for epoch in range(1, configuration.cls_conf.epochs + 1):
             total_loss = 0
             metrics_torch = MetricCollection({'acc': Accuracy(compute_on_step=False, num_classes=self.num_classes),
                                               'precision': Precision(compute_on_step=False, average='macro',
@@ -133,8 +139,8 @@ class LinearEval(torch.nn.Module):
                                                              num_classes=self.num_classes),
                                               'cm': ConfusionMatrix(num_classes=self.num_classes)})
             metrics_torch.to(configuration.device)
-            if epoch == int(configuration.le_conf.epochs * 0.5) or \
-                    epoch == int(configuration.le_conf.epochs * 0.75):
+            if epoch == int(configuration.cls_conf.epochs * 0.5) or \
+                    epoch == int(configuration.cls_conf.epochs * 0.75):
                 for g in self.optimizer.param_groups:
                     g["lr"] *= 0.1  # divide by 10
             for idx, (view_one, view_two, target) in enumerate(train_loader):
@@ -154,10 +160,10 @@ class LinearEval(torch.nn.Module):
                 _, predicted = torch.max(output, 1)
                 metrics_torch(predicted, target.int())
                 if configuration.dry_run:
-                    self.save(configuration.le_conf.checkpoint_save, epoch)
+                    self.save(configuration.cls_conf.checkpoint_save, epoch)
                     return
-            if epoch % 10 == 0:
-                self.save(configuration.le_conf.checkpoint_save, epoch)
+            if epoch % 100 == 0:
+                self.save(configuration.cls_conf.checkpoint_save, epoch)
             avg_loss = total_loss / len(train_loader)
             logging.info(f"epoch: |{epoch:>02}|, loss: |{avg_loss:.5f}|")
             logging.info("Train metrics: {}".format(metrics_torch.compute()))
@@ -168,6 +174,8 @@ class LinearEval(torch.nn.Module):
         :param configuration: Configuration
         :param test_loader: torch.utils.data.DataLoader
         """
+        logging.info("Test ...")
+
         self.feature_extractor.eval()
         self.classifier.eval()
 
@@ -203,6 +211,7 @@ class LinearEval(torch.nn.Module):
         :param configuration: Configuration
         :param test_loader: torch.utils.data.DataLoader
         """
+        logging.info("Extended test ...")
         self.feature_extractor.eval()
         self.classifier.eval()
         metrics_torch = MetricCollection({'acc': Accuracy(compute_on_step=False, num_classes=self.num_classes),
@@ -216,7 +225,7 @@ class LinearEval(torch.nn.Module):
                                           'cm': ConfusionMatrix(num_classes=self.num_classes)})
         metrics_torch.to('cpu')
         data_list = []
-        for replica in range(configuration.le_conf.replicas):
+        for replica in range(configuration.cls_conf.replicas):
             with torch.no_grad():
                 last_idx = 0
                 for idx, (view_one, view_two, target) in enumerate(test_loader):
@@ -249,10 +258,14 @@ class LinearEval(torch.nn.Module):
 
     def extract_features(self, configuration: Configuration, data_loader: torch_data.DataLoader,
                          file_name: str) -> None:
+
+        out = '_'.join([configuration.features_out, file_name])
+        logging.info("Feature extraction -> {}".format(out))
+
         self.feature_extractor.eval()
         self.classifier.eval()
         data_list = []
-        for replica in range(configuration.le_conf.replicas_extraction):
+        for replica in range(configuration.cls_conf.replicas_extraction):
             with torch.no_grad():
                 for idx, (view_one, view_two, target) in enumerate(data_loader):
                     view_one = view_one.to(configuration.device)
@@ -264,4 +277,4 @@ class LinearEval(torch.nn.Module):
                     data_list.append(torch.cat((output, target.unsqueeze(1)), 1))
 
         data = torch.cat(data_list).detach().cpu().numpy()
-        np.save('_'.join([configuration.features_out, file_name]), data)
+        np.save(out, data)
