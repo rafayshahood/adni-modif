@@ -193,7 +193,7 @@ appropriate places:
 - t-SNE visualisation of features learned by NNCLR (train set):
 ![tSNE maps](./images/tsne_2D.png)
 
-- Attributions created using DeepLift of a patient diagnosed with Alzheimer's Disease: green (positive atttributions), red (negative attributions)
+- Attributions created using Integrated Gradients of a patient diagnosed with Alzheimer's Disease: green (positive atttributions), red (negative attributions)
 
 ![ig positive](./images/attributions_ig_positive_AD.gif) |  ![ig negative](./images/attributions_ig_negative_AD.gif)
 
