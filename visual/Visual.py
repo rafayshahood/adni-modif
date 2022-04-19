@@ -5,6 +5,9 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 import seaborn as sns
+import torch
+from captum.attr import DeepLift
+from captum.attr._utils.visualization import visualize_image_attr
 from mlxtend.plotting import plot_confusion_matrix
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE as TSNE_sklearn
@@ -186,3 +189,16 @@ class FeatureMap:
                     break
             plt.savefig(f"./output/feature_maps/layer_{num_layer}.png")
             plt.close()
+
+
+def plot_attributions(sample, model, target, name):
+    dl = DeepLift(model)
+    sample = torch.unsqueeze(sample, dim=0)
+    attribution = dl.attribute(sample, target=target)
+
+    np_attribution = torch.unsqueeze(torch.squeeze(attribution), dim=2).detach().cpu().numpy()
+    np_sample = torch.unsqueeze(torch.squeeze(sample), dim=2).detach().cpu().numpy()
+    fig, ax = visualize_image_attr(np_attribution, np_sample, "blended_heat_map", alpha_overlay=0.5, show_colorbar=True,
+                                  sign="negative", use_pyplot=False)
+    ax.plot()
+    fig.savefig("/mnt/ssd2/ClinicNET/output/{}.png".format(name), format="png")

@@ -32,7 +32,7 @@ See also /data_dzne_archiv2/Studien/ClinicNET/data/
 ## Set-up Instructions:
 - `sudo apt-get install dcm2niix`
 - install ANTs: https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS
-- `pip3 install lightly openpyxl plotly mlxtend zennit nibabel torch_tb_profiler`
+- `pip3 install captum lightly openpyxl plotly mlxtend zennit nibabel torch_tb_profiler`
 - `git clone https://github.com/VadymV/clinica` and `git clone https://github.com/VadymV/clinicadl.git`
 - `pip install ./clinica ./clinicadl`
 - `conda install tsnecuda -c conda-forge`
@@ -192,6 +192,10 @@ appropriate places:
 
 - t-SNE visualisation of features learned by NNCLR (train set):
 ![tSNE maps](./images/tsne_2D.png)
+
+- Attributions created using DeepLift of a patient diagnosed with Alzheimer's Disease: green (positive atttributions), red (negative attributions)
+
+![](./images/attributions_deep_lift_positive_AD.gif) |  ![](./images/attributions_deep_lift_negative_AD.gif)
 
 - Evaluation results:
   - `CN` vs `AD` vs `BV` vs `MCI` over 3 learning trials using test sets of ADNI3, ADNI2, AIBL, NIFD: 
