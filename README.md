@@ -195,7 +195,7 @@ appropriate places:
 
 - Attributions created using DeepLift of a patient diagnosed with Alzheimer's Disease: green (positive atttributions), red (negative attributions)
 
-![](./images/attributions_deep_lift_positive_AD.gif) |  ![](./images/attributions_deep_lift_negative_AD.gif)
+![ig positive](./images/attributions_ig_positive_AD.gif) |  ![ig negative](./images/attributions_ig_negative_AD.gif)
 
 - Evaluation results:
   - `CN` vs `AD` vs `BV` vs `MCI` over 3 learning trials using test sets of ADNI3, ADNI2, AIBL, NIFD: 

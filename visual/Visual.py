@@ -6,7 +6,7 @@ import pandas as pd
 import plotly.express as px
 import seaborn as sns
 import torch
-from captum.attr import DeepLift
+from captum.attr import IntegratedGradients, NoiseTunnel
 from captum.attr._utils.visualization import visualize_image_attr
 from mlxtend.plotting import plot_confusion_matrix
 from sklearn.decomposition import PCA
@@ -192,13 +192,17 @@ class FeatureMap:
 
 
 def plot_attributions(sample, model, target, name):
-    dl = DeepLift(model)
+    ig = IntegratedGradients(model)
+    nt = NoiseTunnel(ig)
     sample = torch.unsqueeze(sample, dim=0)
-    attribution = dl.attribute(sample, target=target)
+    baseline = torch.zeros((1, 1, 179, 169), device="cuda")
+    attributions, delta = nt.attribute(sample, nt_type='smoothgrad', stdevs=0.02, nt_samples=5,
+                                       baselines=baseline, target=target, return_convergence_delta=True)
 
-    np_attribution = torch.unsqueeze(torch.squeeze(attribution), dim=2).detach().cpu().numpy()
+    np_attribution = torch.unsqueeze(torch.squeeze(attributions), dim=2).detach().cpu().numpy()
     np_sample = torch.unsqueeze(torch.squeeze(sample), dim=2).detach().cpu().numpy()
     fig, ax = visualize_image_attr(np_attribution, np_sample, "blended_heat_map", alpha_overlay=0.5, show_colorbar=True,
-                                  sign="negative", use_pyplot=False)
+                                   sign="positive", use_pyplot=False)
     ax.plot()
+    plt.show()
     fig.savefig("/mnt/ssd2/ClinicNET/output/{}.png".format(name), format="png")

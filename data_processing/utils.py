@@ -1,6 +1,8 @@
 import logging
+import os
 import random
 from enum import Enum
+from shutil import copy2
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -114,3 +116,14 @@ def mean_confidence_interval(data, confidence=0.95):
 # precision = [0.5729, 0.5766, 0.5583]
 # recall = [0.6978, 0.6970, 0.6861]
 # mean_confidence_interval(mcc)
+
+
+# input_dir = "/mnt/ssd2/ClinicNET/data/adni3/CAPS/subjects/"
+# output_dir = "/mnt/ssd2/ClinicNET/data/temp/ADNI3/"
+# for root, dirs, files in os.walk(input_dir):
+#     for name in files:
+#         if "ses-M00" in name and name.endswith(".pt"):
+#             file_path = os.path.join(os.path.abspath(root), name)
+#             if not os.path.exists(output_dir):
+#                 os.makedirs(output_dir)
+#             copy2(file_path, output_dir)
