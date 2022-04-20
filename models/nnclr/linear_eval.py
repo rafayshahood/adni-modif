@@ -61,7 +61,10 @@ class ClassificationModel(torch.nn.Module):
             self.ce = torch.nn.CrossEntropyLoss()
 
         self.optimizer = Adam([{"params": self.classifier.parameters(), "lr": 0.001}])
-        self.name = "cls_c-{}_f-{}_fr-{}".format(num_classes, num_ftrs, freeze_backbone)
+        self.name = ""
+
+    def set_name(self, seed, conf_id):
+        self.name = "cls_seed-{}_freeze-{}_conf_id-{}".format(seed, self.freeze_backbone, conf_id)
 
     def forward(self, x, only_features=False, lrp_run=False):
         """
@@ -93,7 +96,7 @@ class ClassificationModel(torch.nn.Module):
         self.classifier.load_state_dict(checkpoint["classifier"])
         logging.info("Checkpoint: {} is loaded".format(str(file_path)))
 
-    def save(self, file_path: str, epoch: int) -> None:
+    def save(self, file_path: str) -> None:
         """
         Save a model
         :param file_path: a path to a file
@@ -103,7 +106,7 @@ class ClassificationModel(torch.nn.Module):
         classifier_dict = self.classifier.state_dict()
         torch.save({"feature_extractor": feature_extractor_dict,
                     "classifier": classifier_dict},
-                   "{}{}_e-{}".format(file_path, self.name, epoch))
+                   "{}{}".format(file_path, self.name))
         logging.info("Checkpoint: {} is saved".format(str(file_path)))
 
     def train_(self, configuration: Configuration, train_loader: torch_data.DataLoader) -> None:
@@ -160,10 +163,10 @@ class ClassificationModel(torch.nn.Module):
                 _, predicted = torch.max(output, 1)
                 metrics_torch(predicted, target.int())
                 if configuration.dry_run:
-                    self.save(configuration.cls_conf.checkpoint_save, epoch)
+                    self.save(configuration.cls_conf.checkpoint_folder_save, epoch)
                     return
             if epoch % 100 == 0:
-                self.save(configuration.cls_conf.checkpoint_save, epoch)
+                self.save(configuration.cls_conf.checkpoint_folder_save, epoch)
             avg_loss = total_loss / len(train_loader)
             logging.info(f"epoch: |{epoch:>02}|, loss: |{avg_loss:.5f}|")
             logging.info("Train metrics: {}".format(metrics_torch.compute()))

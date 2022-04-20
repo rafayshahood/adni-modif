@@ -75,9 +75,6 @@ class DataLoaderSSL:
         :return: training and evaluation sets
         """
 
-        # Assure that the split is always the same
-        self.configuration.set_seeds(145794547)
-
         patients = self.data.data['patient'].tolist()  # A list of patient IDs
 
         # Get indices of training and evaluation sets:
@@ -121,10 +118,7 @@ class DataLoaderSSL:
 
         train_dataset = torch_data.Subset(dataset, train_idx)
         eval_dataset = torch_data.Subset(dataset, eval_idx)
-
-        # Restore original seeds:
-        self.configuration.set_seeds()
-
+        logging.info("IDs: {}".format(eval_idx))
         return train_dataset, eval_dataset
 
     def create_data_loader(self) -> None:

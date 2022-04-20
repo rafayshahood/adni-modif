@@ -1,6 +1,7 @@
 import logging
 import os
 import random
+import shutil
 from enum import Enum
 from shutil import copy2
 
@@ -23,12 +24,23 @@ class Mode(str, Enum):
     independent_evaluation = 'independent_evaluation'
 
 
-def set_logging(seed, suffix):
+def create_folder(root, folder_name):
+    if not os.path.exists(root):
+        os.makedirs(root)
+    output_dir = os.path.join(os.path.abspath(root), folder_name)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    return output_dir
+
+
+def set_logging(log_dir, suffix):
+    import logging
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
-            logging.FileHandler("/mnt/ssd2/ClinicNET/log/debug_{}_{}.log".format(seed, suffix)),
+            logging.FileHandler("{}debug_{}.log".format(log_dir, suffix)),
             logging.StreamHandler()
         ]
     )

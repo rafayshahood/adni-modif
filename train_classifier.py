@@ -1,8 +1,9 @@
 """
-Main routine for training a top linear layer on top of the NNCLR model.
+Main routine for the training procedure of a classification block on top of the NNCLR model.
 
 @author Vadym Gryshchuk
 """
+import os
 
 from configuration.configuration import Configuration
 from data_processing.data_loader import DataLoaderSSL, Mode
@@ -12,9 +13,12 @@ from models.nnclr.linear_eval import ClassificationModel
 from models.nnclr.nnclr import NNCLR, get_convnext
 
 
-def execute(conf, freeze_backbone):
-    # Set-up:
-    set_logging(seed, "classification_model")  # logging
+def execute(conf: Configuration, freeze_backbone: bool):
+    """
+    Executes the training procedure
+    :param conf: Configuration
+    :param freeze_backbone: if True, then a backbone will be frozen, otherwise not.
+    """
     set_seeds(seed)  # set seed for the reproducibility of the results
 
     # Data:
@@ -26,14 +30,22 @@ def execute(conf, freeze_backbone):
 
     # Training procedure:
     backbone = get_convnext()
-    backbone = NNCLR.load_state_dict_(backbone, conf.cls_conf.checkpoint_load)  # load a saved backbone
+    backbone = NNCLR.load_state_dict_(backbone, conf.cls_conf.backbone_checkpoint)  # load a saved backbone
     linear_eval = ClassificationModel(backbone, data_loader.classes, data_loader.class_weights, freeze_backbone)
     linear_eval.to(conf.device)
+    linear_eval.set_name(seed, configuration.id)
     linear_eval.train_(conf, data_loader.train_loader)
 
 
 configuration = Configuration(Mode.evaluation)  # Load a configuration file
+set_logging(configuration.logs_folder, suffix="classification_model")  # logging
+
 for seed in configuration.seeds:
+
+    if len(configuration.cls_conf.backbone_checkpoint) == 0:
+        configuration.cls_conf.backbone_checkpoint = "{}{}".format(configuration.checkpoints_folder,
+                                                                   NNCLR.get_name_as_string(seed, configuration.id))
+
     if configuration.cls_conf.comparison:  # if True, then two models will be trained
         execute(conf=configuration, freeze_backbone=False)
         execute(conf=configuration, freeze_backbone=True)

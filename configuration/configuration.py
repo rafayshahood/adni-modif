@@ -1,21 +1,18 @@
-import random
-
-import numpy as np
 import torch
 import yaml
-from torch.backends import cudnn
 
-from data_processing.utils import Mode
+from data_processing.utils import Mode, create_folder
 
 
 class NNCLRConfiguration:
     """
     Configuration for the NNCLR model
     """
-    def __init__(self, settings: dict) -> None:
+
+    def __init__(self, settings: dict, ckpt_dir: str) -> None:
         self.epochs = settings['epochs']
         self.batch_size = settings['batch_size']
-        self.checkpoint = settings['checkpoint']
+        self.checkpoint_folder = ckpt_dir
         self.checkpoint_resume = settings['checkpoint_resume']
         self.save_nepoch = settings['save_nepoch']
         self.trainable_layers = settings['trainable_layers']
@@ -25,11 +22,12 @@ class ClassificationModelConfiguration:
     """
     Configuration for the linear evaluation of the NNCLR model
     """
-    def __init__(self, settings: dict):
+
+    def __init__(self, settings: dict, ckpt_dir: str):
         self.epochs = settings['epochs']
         self.batch_size = settings['batch_size']
-        self.checkpoint_load = settings['checkpoint_load']
-        self.checkpoint_save = settings['checkpoint_save']
+        self.backbone_checkpoint = settings['backbone_checkpoint']
+        self.checkpoint_folder_save = ckpt_dir
         self.replicas = settings['replicas']
         self.replicas_extraction = settings['replicas_extraction']
         self.eval_labels = settings['eval_labels']
@@ -40,6 +38,7 @@ class IndependentEvaluationConfiguration:
     """
     Configuration for the independent linear evaluation of the NNCLR model
     """
+
     def __init__(self, settings: dict):
         self.batch_size = settings['batch_size']
         self.checkpoint_load = settings['checkpoint_load']
@@ -48,29 +47,26 @@ class IndependentEvaluationConfiguration:
         self.eval_labels = settings['eval_labels']
 
 
-class LRPConfiguration:
-    """
-    Configuration for LRP
-    """
-    def __init__(self, settings: dict):
-        self.batch_size = settings['batch_size']
-        self.checkpoint = settings['checkpoint']
-        self.is_train_set = settings['is_train_set']
-        self.classes = settings['classes']
-
-
 class Configuration:
     """
     Configuration for all components
     """
-    def __init__(self, mode):
+
+    def __init__(self, mode: Mode):
         with open('./configuration/configuration.yaml', 'r') as stream:
             settings = yaml.load(stream, yaml.Loader)
 
             # --- general ---
+            self.work_dir = settings['working_dir']
+            self.id = settings['id']
             self.seeds = settings['seeds']
             self.dry_run = settings['dry_run']
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
+            self.checkpoints_folder = create_folder(self.work_dir, "checkpoints/")
+            self.logs_folder = create_folder(self.work_dir, "logs/")
+            self.features_folder = create_folder(self.work_dir, "features/")
+            self.figures_folder = create_folder(self.work_dir, "figures/")
 
             # --- data ---
             data = self.get_data(settings, mode)
@@ -86,27 +82,13 @@ class Configuration:
             self.col_names = data['col_names']
 
             # --- NNCLR ---
-            self.nnclr_conf = NNCLRConfiguration(settings['nnclr'])
+            self.nnclr_conf = NNCLRConfiguration(settings['nnclr'], ckpt_dir=self.checkpoints_folder)
 
             # --- Linear evaluation ---
-            self.cls_conf = ClassificationModelConfiguration(settings['classifier'])
+            self.cls_conf = ClassificationModelConfiguration(settings['classifier'], ckpt_dir=self.checkpoints_folder)
 
             # --- Independent linear evaluation ---
             self.ind_eval_conf = IndependentEvaluationConfiguration(settings['independent_eval'])
-
-            # --- LRP ---
-            self.lrp_conf = LRPConfiguration(settings['lrp'])
-
-    def set_seeds(self, seed: int = None) -> None:
-        """
-        Set seed to assure the reproducibility of results
-        :param seed: a seed as int
-        """
-        new_seed = self.seed if seed is None else seed
-        random.seed(new_seed)
-        np.random.seed(new_seed)
-        torch.manual_seed(new_seed)
-        cudnn.deterministic = True
 
     @staticmethod
     def get_data(settings, mode):
@@ -120,6 +102,3 @@ class Configuration:
             raise ValueError("Mode {} is not recognized".format(mode))
 
         return data
-
-
-

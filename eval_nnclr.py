@@ -30,7 +30,7 @@ for seed in configuration.seeds:
     # Evaluation:
     backbone = get_convnext()
     linear_eval = ClassificationModel(backbone, data_loader.classes)
-    linear_eval.load(configuration.cls_conf.checkpoint_save, configuration.device)  # load a saved model
+    linear_eval.load(configuration.cls_conf.checkpoint_folder_save, configuration.device)  # load a saved model
     linear_eval.to(configuration.device)
     linear_eval.test_(configuration, data_loader.eval_loader)  # one run for evaluation
     linear_eval.test_ext(configuration, data_loader.eval_loader)  # multiple runs for evaluation

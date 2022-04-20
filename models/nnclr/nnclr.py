@@ -20,14 +20,11 @@ def get_convnext():
     backbone = torchvision.models.convnext_tiny(pretrained=True)  # pretrained model is loaded
     backbone.features[0][0] = nn.Conv2d(1, 96, (4, 4), (4, 4))
     backbone = nn.Sequential(*list(backbone.children())[:-1])  # remove classification layer
-    print(backbone)
 
     return backbone
 
 
-def trace_handler(prof):
-    print(prof.key_averages().table(
-        sort_by="self_cuda_time_total", row_limit=10))
+NAME_PREFIX = "nnclr"
 
 
 class NNCLR(nn.Module):
@@ -58,7 +55,14 @@ class NNCLR(nn.Module):
             self.freeze_layers(last_mbconv_blocks=freeze_layers)
 
         logging.info("# trainable parameters: {}".format(sum(p.numel() for p in self.parameters() if p.requires_grad)))
-        self.name = "cls_f-{}_fr-{}".format(num_ftrs, freeze_layers)
+        self.name = ""
+
+    def set_name(self, seed, conf_id):
+        self.name = self.get_name_as_string(seed, conf_id)
+
+    @staticmethod
+    def get_name_as_string(seed, conf_id):
+        return "{}_seed-{}_conf_id-{}".format(NAME_PREFIX, seed, conf_id)
 
     def freeze_layers(self, last_mbconv_blocks: int = 2):
         """
@@ -98,7 +102,7 @@ class NNCLR(nn.Module):
         backbone_state_dict = self.backbone.state_dict()
         projection_mlp_state_dict = self.projection_head.state_dict()
         prediction_mlp_state_dict = self.prediction_head.state_dict()
-        out = "{}{}_e-{}".format(file_path, self.name, epoch)
+        out = "{}{}".format(file_path, self.name)
         torch.save({"backbone": backbone_state_dict,
                     "projection": projection_mlp_state_dict,
                     "prediction": prediction_mlp_state_dict},
@@ -164,9 +168,9 @@ class NNCLR(nn.Module):
                 self.optimizer.step()
                 self.optimizer.zero_grad()
                 if configuration.dry_run:
-                    self.save(configuration.nnclr_conf.checkpoint, epoch)
+                    self.save(configuration.nnclr_conf.checkpoint_folder, epoch)
                     return
             if epoch % configuration.nnclr_conf.save_nepoch == 0:
-                self.save(configuration.nnclr_conf.checkpoint, epoch)
+                self.save(configuration.nnclr_conf.checkpoint_folder, epoch)
             avg_loss = total_loss / len(data_loader)
             logging.info(f"epoch: |{epoch:>02}|, loss: |{avg_loss:.5f}|")

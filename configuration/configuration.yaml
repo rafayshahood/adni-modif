@@ -1,11 +1,13 @@
 # General settings
+working_dir : "/mnt/ssd2/ClinicNET/work_dir/"
+id: v1  #  configuration version
 seeds:
   - 22
   - 32
   - 42
   - 52
   - 62
-dry_run: False  # used for testing purposes; if True, then only one training iteration is performed
+dry_run: True  # used for testing purposes; if True, then only one training iteration is performed
 
 # Data settings:
 data:
@@ -57,12 +59,11 @@ data:
 
 # NNCLR settings:
 nnclr:
-  checkpoint: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/'
-  checkpoint_resume: ''
+  checkpoint_resume: ''  # if provided a model will be loaded and trained further. The same model is used for all seeds!
   epochs: 2000
   save_nepoch: 100  # a model will be saved every nth epoch
   batch_size: 150
-  trainable_layers: 0  # only the last n nn.Sequential blocks and other layers afterwards will be trained
+  trainable_layers: 0  # only the last n nn.Sequential blocks and other layers afterwards will be trained (0 means that all layers will be trained)
   data:
     # A list of the paths to the CAPS directories:
     - caps_directories:
@@ -81,9 +82,8 @@ nnclr:
 
 # Setting for the linear evaluation of the NNCLR model:
 classifier:
-  checkpoint_load: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed32/one_slice_nnclr_epoch_2000.ckpt'
-  checkpoint_save: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/'
-  epochs: 1
+  backbone_checkpoint: ''  # if empty then for a checkpoint will be searched in the working directory
+  epochs: 1000
   batch_size: 32
   replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis
   replicas_extraction: 1  # extract # replicas_extraction random slices from each sample

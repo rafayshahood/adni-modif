@@ -52,10 +52,10 @@ data_loader.mode = Mode.independent_evaluation
 data_loader.batch_size = configuration.ind_eval_conf.batch_size
 data_loader.create_data_loader()
 
-linear_eval = ClassificationModel(backbone, num_classes=torch.load(configuration.ind_eval_conf.checkpoint_load,
+linear_eval = ClassificationModel(backbone, num_classes=torch.load(configuration.ind_eval_conf.backbone_checkpoint,
                                                                    map_location=configuration.device)["classifier"][
     "top_layer.bias"].shape[0])
-linear_eval.load(configuration.ind_eval_conf.checkpoint_load, configuration.device)  # load a saved model
+linear_eval.load(configuration.ind_eval_conf.backbone_checkpoint, configuration.device)  # load a saved model
 linear_eval.to(configuration.device)
 
 logging.info("Test ...")
