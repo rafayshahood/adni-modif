@@ -93,10 +93,10 @@ class NNCLR(nn.Module):
         z = z.detach()
         return z, p
 
-    def save(self, file_path: str, epoch: int) -> None:
+    def save(self, file_path: str) -> None:
         """
         Save a model
-        :param file_path: a path to a file
+        :param file_path: a path to a folder
         :param epoch: epoch
         """
         backbone_state_dict = self.backbone.state_dict()
@@ -168,9 +168,9 @@ class NNCLR(nn.Module):
                 self.optimizer.step()
                 self.optimizer.zero_grad()
                 if configuration.dry_run:
-                    self.save(configuration.nnclr_conf.checkpoint_folder, epoch)
+                    self.save(configuration.nnclr_conf.checkpoint_folder)
                     return
             if epoch % configuration.nnclr_conf.save_nepoch == 0:
-                self.save(configuration.nnclr_conf.checkpoint_folder, epoch)
+                self.save(configuration.nnclr_conf.checkpoint_folder)
             avg_loss = total_loss / len(data_loader)
             logging.info(f"epoch: |{epoch:>02}|, loss: |{avg_loss:.5f}|")

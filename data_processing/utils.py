@@ -14,13 +14,15 @@ from matplotlib import pyplot
 from sklearn.metrics import roc_curve, roc_auc_score
 from torch.backends import cudnn
 
+LOG_IDENTIFIER = ">>>"  #
+
 
 class Mode(str, Enum):
     """"
     A helper class to differentiate between different stages: training and evaluation
     """
     training = 'training'
-    evaluation = 'evaluation'
+    classifier = 'classifier'
     independent_evaluation = 'independent_evaluation'
 
 

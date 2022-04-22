@@ -15,30 +15,29 @@ from data_processing.utils import Mode
 
 class DataLoaderSSL:
     """
-    Creates the train and test/evaluation loaders
+    Creates train and test/evaluation loaders
     """
 
     def __init__(self, configuration: Configuration, data: DataReader, mode: Mode) -> None:
         """
-        Initialize with all required attributes.
-        :type configuration: Configuration
-        :type data: DataReader
+        Initialises with all required attributes.
+        :type configuration: Configuration object
+        :type data: DataReader object
         :type mode: Mode object
         """
         self.configuration = configuration
         self.data = data
         self.mode = mode
 
-        # Values will be filled during execution:
+        # Values will be filled during the execution:
         self.batch_size = None
-        self.mode = None
         self.classes = None
         self.train_loader, self.eval_loader = None, None
         self.class_weights = None
 
     def filter_data(self, dataset: Subset, diagnoses: list) -> Subset:
         """
-        Selects only data that are relevant for evaluation
+        Selects only data that are relevant for evaluation/test
         :param dataset: A dataset (Subset) with indices
         :param diagnoses: A list of diagnoses
         :return: A dataset (Subset) with indices that correspond to relevant diagnoses
@@ -67,7 +66,7 @@ class DataLoaderSSL:
 
         return dataset
 
-    def split_data(self, targets, diagnoses) -> Tuple[Subset, Subset]:
+    def split_data(self, targets: list, diagnoses: list) -> Tuple[Subset, Subset]:
         """
         Split data into training and evaluation sets
         :param targets: Targets/Labels/Diagnoses as int values
@@ -107,7 +106,7 @@ class DataLoaderSSL:
         values = [diagnoses[i] for i in train_idx]
         logging.info("Counts: {}".format(dict(zip(list(values), [list(values).count(i) for i in list(values)]))))
 
-        if self.mode == Mode.evaluation:
+        if self.mode == Mode.classifier:
             logging.info("Number of samples in evaluation set: {}".format(len(eval_idx)))
             values = [diagnoses[i] for i in eval_idx]
             logging.info("Counts: {}".format(dict(zip(list(values), [list(values).count(i) for i in list(values)]))))
@@ -139,7 +138,7 @@ class DataLoaderSSL:
         train_dataset, eval_dataset = self.split_data(self.data.data['target'].tolist(),
                                                       self.data.data['diagnosis'].tolist())
 
-        if self.mode == Mode.evaluation:
+        if self.mode == Mode.classifier:
             # During evaluation another set of targets can be used:
             train_dataset = self.filter_data(train_dataset, self.data.data['diagnosis'].tolist())
             eval_dataset = self.filter_data(eval_dataset, self.data.data['diagnosis'].tolist())

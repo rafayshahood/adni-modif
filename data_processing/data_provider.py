@@ -6,7 +6,11 @@ from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 
 
-def transform_functions():
+def get_transform_functions():
+    """
+    Create random transform functions that will be applied to input data
+    :return: transform functions
+    """
     rnd_resizedcrop = transforms.RandomResizedCrop(size=(179, 169),
                                                    scale=(0.08, 1.0),
                                                    ratio=(0.75, 1.3333333333333333),
@@ -28,10 +32,11 @@ class DataProviderSSL(Dataset):
         Initialize with all required attributes.
         :param files: paths to data
         :param targets: diagnoses as int values
+        :param diagnoses: diagnoses as str values
         :param slices_range: the range from which slices will be sampled
         :param mode: Mode
         """
-        self.transform_func = transform_functions()
+        self.transform_func = get_transform_functions()
         self.files = files
         self.targets = targets
         self.diagnoses = diagnoses

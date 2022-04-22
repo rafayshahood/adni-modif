@@ -63,8 +63,12 @@ class ClassificationModel(torch.nn.Module):
         self.optimizer = Adam([{"params": self.classifier.parameters(), "lr": 0.001}])
         self.name = ""
 
-    def set_name(self, seed, conf_id):
-        self.name = "cls_seed-{}_freeze-{}_conf_id-{}".format(seed, self.freeze_backbone, conf_id)
+    def set_name(self, seed, freeze_backbone, conf_id):
+        self.name = self.get_name_as_string(seed, freeze_backbone, conf_id)
+
+    @staticmethod
+    def get_name_as_string(seed, freeze_backbone, conf_id):
+        return "cls_seed-{}_freeze-{}_conf_id-{}".format(seed, freeze_backbone, conf_id)
 
     def forward(self, x, only_features=False, lrp_run=False):
         """
@@ -99,14 +103,14 @@ class ClassificationModel(torch.nn.Module):
     def save(self, file_path: str) -> None:
         """
         Save a model
-        :param file_path: a path to a file
-        :param epoch: epoch
+        :param file_path: a path to a folder
         """
         feature_extractor_dict = self.feature_extractor.state_dict()
         classifier_dict = self.classifier.state_dict()
+        out = "{}{}".format(file_path, self.name)
         torch.save({"feature_extractor": feature_extractor_dict,
                     "classifier": classifier_dict},
-                   "{}{}".format(file_path, self.name))
+                   out)
         logging.info("Checkpoint: {} is saved".format(str(file_path)))
 
     def train_(self, configuration: Configuration, train_loader: torch_data.DataLoader) -> None:
@@ -163,10 +167,10 @@ class ClassificationModel(torch.nn.Module):
                 _, predicted = torch.max(output, 1)
                 metrics_torch(predicted, target.int())
                 if configuration.dry_run:
-                    self.save(configuration.cls_conf.checkpoint_folder_save, epoch)
+                    self.save(configuration.cls_conf.checkpoint_folder_save)
                     return
-            if epoch % 100 == 0:
-                self.save(configuration.cls_conf.checkpoint_folder_save, epoch)
+            if epoch % 10 == 0:
+                self.save(configuration.cls_conf.checkpoint_folder_save)
             avg_loss = total_loss / len(train_loader)
             logging.info(f"epoch: |{epoch:>02}|, loss: |{avg_loss:.5f}|")
             logging.info("Train metrics: {}".format(metrics_torch.compute()))
@@ -262,7 +266,7 @@ class ClassificationModel(torch.nn.Module):
     def extract_features(self, configuration: Configuration, data_loader: torch_data.DataLoader,
                          file_name: str) -> None:
 
-        out = '_'.join([configuration.features_out, file_name])
+        out = ''.join([configuration.features_folder, file_name])
         logging.info("Feature extraction -> {}".format(out))
 
         self.feature_extractor.eval()

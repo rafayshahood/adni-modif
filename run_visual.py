@@ -3,7 +3,7 @@ import torch
 import torchvision
 from torch import nn
 
-from models.nnclr.linear_eval import ClassificationModel
+from models.nnclr.classifier import ClassificationModel
 from models.nnclr.nnclr import NNCLR, get_convnext
 from visual.Visual import plot_2d_tsne, plot_3d_tsne, plot_loss_figure, plot_cm_mlxtend, plot_attributions
 
