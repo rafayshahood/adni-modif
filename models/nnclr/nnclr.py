@@ -13,10 +13,9 @@ from configuration.configuration import Configuration
 
 def get_convnext():
     """
-    Returns a ConvNeXt tiny backbone with only one channel instead of three as input
+    Returns a ConvNeXt tiny backbone with only one channel instead of three as input.
     :return: ConvNeXt
     """
-    # Use an convnext_tiny backbone
     backbone = torchvision.models.convnext_tiny(pretrained=True)  # pretrained model is loaded
     backbone.features[0][0] = nn.Conv2d(1, 96, (4, 4), (4, 4))
     backbone = nn.Sequential(*list(backbone.children())[:-1])  # remove classification layer
@@ -38,6 +37,15 @@ class NNCLR(nn.Module):
                  pred_hidden_dim: int = 768,
                  out_dim: int = 512,
                  freeze_layers: int = False):
+        """
+        Initialises with the provided parameters.
+        :param backbone: backbone
+        :param num_ftrs: number of features
+        :param proj_hidden_dim: dimension of the projection head
+        :param pred_hidden_dim: dimension of the prediction head
+        :param out_dim: output dimension
+        :param freeze_layers: 0 means that all layers will be trained, values larger than 0 means that the last n layers will only be trained
+        """
         super().__init__()
 
         self.backbone = backbone
@@ -58,10 +66,21 @@ class NNCLR(nn.Module):
         self.name = ""
 
     def set_name(self, seed, conf_id):
+        """
+        Name of the component.
+        :param seed: seed
+        :param conf_id: configuration ID
+        """
         self.name = self.get_name_as_string(seed, conf_id)
 
     @staticmethod
     def get_name_as_string(seed, conf_id):
+        """
+        Returns name of the component.
+        :param seed: seed
+        :param conf_id: configuration ID
+        :return: name of the component
+        """
         return "{}_seed-{}_conf_id-{}".format(NAME_PREFIX, seed, conf_id)
 
     def freeze_layers(self, last_mbconv_blocks: int = 2):
@@ -87,6 +106,11 @@ class NNCLR(nn.Module):
                 sum(p.numel() for p in self.backbone.parameters() if ~ p.requires_grad)))
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Forward propagation.
+        :param x: input
+        :return: output from projection and prediction heads
+        """
         y = self.backbone(x).flatten(start_dim=1)
         z = self.projection_head(y)
         p = self.prediction_head(z)
@@ -95,9 +119,8 @@ class NNCLR(nn.Module):
 
     def save(self, file_path: str) -> None:
         """
-        Save a model
+        Saves a model.
         :param file_path: a path to a folder
-        :param epoch: epoch
         """
         backbone_state_dict = self.backbone.state_dict()
         projection_mlp_state_dict = self.projection_head.state_dict()
@@ -109,22 +132,10 @@ class NNCLR(nn.Module):
                    out)
         logging.info("Checkpoint: {} is saved".format(out))
 
-    def load(self, file_path: str) -> None:
-        """
-        Load a saved model
-        :param file_path: a path to a file
-        :return:
-        """
-        checkpoint = torch.load(file_path)
-        self.backbone.load_state_dict(checkpoint["backbone"])
-        self.projection_head.load_state_dict(checkpoint["projection"])
-        self.prediction_head.load_state_dict(checkpoint["prediction"])
-        logging.info("Checkpoint: {} is loaded".format(str(file_path)))
-
     @staticmethod
     def load_state_dict_(feature_extractor: nn.Sequential, checkpoint: str) -> nn.Sequential:
         """
-        Load a state dictionary
+        Loads a state dictionary.
         :param feature_extractor: a backbone
         :param checkpoint: a path to a model
         :return: a model with loaded state dictionary
@@ -142,8 +153,8 @@ class NNCLR(nn.Module):
 
     def train_(self, configuration: Configuration, data_loader: torch_data.DataLoader) -> None:
         """
-        Train the NNCLR model
-        :param configuration: Configuration
+        Trains the NNCLR model.
+        :param configuration: Configuration object
         :param data_loader: DataLoader
         """
         logging.info("NNCLR Training ...")

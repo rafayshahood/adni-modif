@@ -85,10 +85,9 @@ class Configuration:
             self.checkpoints_folder = create_folder(self.work_dir, "checkpoints/")
             self.logs_folder = create_folder(self.work_dir, "logs/")
             self.features_folder = create_folder(self.work_dir, "features/")
-            self.figures_folder = create_folder(self.work_dir, "figures/")
 
             # --- data ---
-            data = self.get_data(self.settings, mode)
+            data = self.get_data(mode)
             self.caps_directories = data[0]['caps_directories']
             self.info_data_files = data[1]['info_data_files']
 

@@ -9,15 +9,15 @@ import logging
 import torch
 
 from configuration.configuration import Configuration
-from data_processing.data_loader import DataLoaderSSL, Mode
+from data_processing.data_loader import DataLoader, Mode
 from data_processing.data_reader import DataReader
-from data_processing.utils import set_logging, set_seeds
+from data_processing.utils import set_logging, set_seed
 from models.nnclr.classifier import ClassificationModel
 from models.nnclr.nnclr import get_convnext
 
 configuration = Configuration(mode=Mode.independent_evaluation)  # Load a configuration file
 set_logging(log_dir=configuration.logs_folder, suffix="independent_evaluation")  # logging
-set_seeds(configuration.ind_eval_conf.seed)  # set seed for the reproducibility of the results
+set_seed(seed=configuration.ind_eval_conf.seed)  # set seed for the reproducibility of the results
 
 # Data:
 data_paths = DataReader(caps_directories=configuration.caps_directories,
@@ -26,9 +26,9 @@ data_paths = DataReader(caps_directories=configuration.caps_directories,
                         quality_check=configuration.quality_check,
                         valid_dataset_names=configuration.valid_dataset_names,
                         info_data_cols=configuration.col_names)
-data_loader = DataLoaderSSL(configuration=configuration,
-                            data=data_paths,
-                            mode=Mode.independent_evaluation)
+data_loader = DataLoader(configuration=configuration,
+                         data=data_paths,
+                         mode=Mode.independent_evaluation)
 data_loader.batch_size = configuration.ind_eval_conf.batch_size
 data_loader.create_data_loader()
 
@@ -41,11 +41,10 @@ linear_eval = ClassificationModel(backbone,
 linear_eval.load(file_path=configuration.ind_eval_conf.checkpoint_load,
                  device=configuration.device)  # load a saved model
 linear_eval.to(configuration.device)
-
 logging.info("Test ...")
-linear_eval.test_(configuration, data_loader.eval_loader)  # one run for evaluation
+linear_eval.test_(configuration=configuration, test_loader=data_loader.eval_loader)  # one run for evaluation
 logging.info("Extended test ...")
-linear_eval.test_ext(configuration, data_loader.eval_loader)  # multiple runs for evaluation
-
+linear_eval.test_ext(configuration=configuration, test_loader=data_loader.eval_loader)  # multiple runs for evaluation
 logging.info("Feature extraction ...")
-linear_eval.extract_features(configuration, data_loader.eval_loader, "independent_eval")
+linear_eval.extract_features(configuration=configuration, data_loader=data_loader.eval_loader,
+                             file_name="independent_eval")

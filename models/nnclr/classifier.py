@@ -18,6 +18,10 @@ from configuration.configuration import Configuration
 
 
 class LayerNorm2d(nn.LayerNorm):
+    """
+    Normalisation layer
+    """
+
     def forward(self, x: Tensor) -> Tensor:
         x = x.permute(0, 2, 3, 1)
         x = F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
@@ -27,15 +31,18 @@ class LayerNorm2d(nn.LayerNorm):
 
 class ClassificationModel(torch.nn.Module):
     """
-    Perform a linear evaluation of the NNCLR model
+    Classification model that is used on top of the features provided by the backbone trained in a self-supervised way.
     """
 
     def __init__(self, feature_extractor: Sequential, num_classes: int, class_weights: ndarray = None,
                  num_ftrs: int = 768, freeze_backbone: bool = True):
         """
-        Initialize with the provided attributes
-        :param feature_extractor: a NNCLR backbone
-        :param num_classes: the number of classes
+        Initialises with the provided parameters.
+        :param feature_extractor: the backbone
+        :param num_classes: number of classes
+        :param class_weights: class weights
+        :param num_ftrs: number of features
+        :param freeze_backbone: if True then a backbone will be frozen, otherwise not
         """
         super(ClassificationModel, self).__init__()
         self.freeze_backbone = freeze_backbone
@@ -64,21 +71,33 @@ class ClassificationModel(torch.nn.Module):
         self.name = ""
 
     def set_name(self, seed, freeze_backbone, conf_id):
+        """
+        Name of the component.
+        :param seed: seed
+        :param freeze_backbone: if True then a backbone will be frozen, otherwise not
+        :param conf_id: configuration ID
+        """
         self.name = self.get_name_as_string(seed, freeze_backbone, conf_id)
 
     @staticmethod
     def get_name_as_string(seed, freeze_backbone, conf_id):
+        """
+        Returns name of the component.
+        :param seed: seed
+        :param freeze_backbone:  if True then a backbone will be frozen, otherwise not
+        :param conf_id: configuration ID
+        :return: name of the component
+        """
         return "cls_seed-{}_freeze-{}_conf_id-{}".format(seed, freeze_backbone, conf_id)
 
-    def forward(self, x, only_features=False, lrp_run=False):
+    def forward(self, x, only_features=False):
         """
-        Perform a forward propagation
+        Performs a forward propagation.
         :param x: input data
         :param only_features: If True then only features are returned, otherwise predictions for each class (diagnosis)
-        :param lrp_run: If True then gradient is required, otherwise not
         :return: torch.Tensor (features or predictions)
         """
-        if not lrp_run and self.freeze_backbone:
+        if self.freeze_backbone:
             with torch.no_grad():
                 out = self.feature_extractor(x)
         else:
@@ -91,7 +110,7 @@ class ClassificationModel(torch.nn.Module):
 
     def load(self, file_path: str, device: str = "cpu") -> None:
         """
-        Load a saved model
+        Loads a saved model.
         :param file_path: a path to a file
         :param device: device
         """
@@ -102,7 +121,7 @@ class ClassificationModel(torch.nn.Module):
 
     def save(self, file_path: str) -> None:
         """
-        Save a model
+        Saves a model.
         :param file_path: a path to a folder
         """
         feature_extractor_dict = self.feature_extractor.state_dict()
@@ -115,7 +134,7 @@ class ClassificationModel(torch.nn.Module):
 
     def train_(self, configuration: Configuration, train_loader: torch_data.DataLoader) -> None:
         """
-        Train linear evaluation
+        Trains a classifier.
         :param configuration: Configuration
         :param train_loader: torch.utils.data.DataLoader
         """
@@ -177,7 +196,7 @@ class ClassificationModel(torch.nn.Module):
 
     def test_(self, configuration: Configuration, test_loader: torch_data.DataLoader):
         """
-        Test the NNCLR model
+        Tests the the classifier.
         :param configuration: Configuration
         :param test_loader: torch.utils.data.DataLoader
         """
@@ -214,7 +233,7 @@ class ClassificationModel(torch.nn.Module):
 
     def test_ext(self, configuration, test_loader):
         """
-        Test the NNCLR model by performing multiple runs with random slices for each sample
+        Tests the classification model by performing multiple runs with random slices for each sample
         :param configuration: Configuration
         :param test_loader: torch.utils.data.DataLoader
         """
@@ -265,7 +284,12 @@ class ClassificationModel(torch.nn.Module):
 
     def extract_features(self, configuration: Configuration, data_loader: torch_data.DataLoader,
                          file_name: str) -> None:
-
+        """
+        Extracts features.
+        :param configuration: Configuration object
+        :param data_loader: data loader
+        :param file_name: output file name
+        """
         out = ''.join([configuration.features_folder, file_name])
         logging.info("Feature extraction -> {}".format(out))
 

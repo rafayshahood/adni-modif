@@ -5,10 +5,12 @@ import torch
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 
+from data_processing.utils import Mode
+
 
 def get_transform_functions():
     """
-    Create random transform functions that will be applied to input data
+    Creates random transform functions that will be applied to input data
     :return: transform functions
     """
     rnd_resizedcrop = transforms.RandomResizedCrop(size=(179, 169),
@@ -22,19 +24,19 @@ def get_transform_functions():
     return transform
 
 
-class DataProviderSSL(Dataset):
+class DataProvider(Dataset):
     """
     Provides the access to data.
     """
 
-    def __init__(self, files: list, targets: list, diagnoses: list, slices_range: int, mode: str) -> None:
+    def __init__(self, files: list, targets: list, diagnoses: list, slices_range: int, mode: Mode) -> None:
         """
         Initialize with all required attributes.
         :param files: paths to data
         :param targets: diagnoses as int values
         :param diagnoses: diagnoses as str values
         :param slices_range: the range from which slices will be sampled
-        :param mode: Mode
+        :param mode: Mode object
         """
         self.transform_func = get_transform_functions()
         self.files = files
@@ -46,14 +48,14 @@ class DataProviderSSL(Dataset):
 
     def __len__(self) -> int:
         """
-        Return the number of samples.
+        Returns the number of samples.
         :return: the number of samples.
         """
         return len(self.targets)
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, str]:
         """
-        Return two different views of one slice and the corresponding target/label.
+        Returns two different views of one slice and the corresponding target/label.
         :param idx: the ID of a sample.
         :return: two different views of one slice and the corresponding target/label.
         """

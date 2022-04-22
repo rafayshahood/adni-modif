@@ -1,17 +1,26 @@
 import numpy as np
 import torch
 import torchvision
+import yaml
 from torch import nn
 
+from configuration.configuration import Configuration
+from data_processing.utils import create_folder
 from models.nnclr.classifier import ClassificationModel
 from models.nnclr.nnclr import NNCLR, get_convnext
-from visual.Visual import plot_2d_tsne, plot_3d_tsne, plot_loss_figure, plot_cm_mlxtend, plot_attributions
+from visual.Visual import plot_2d_tsne, plot_3d_tsne, plot_loss_figure, plot_cm_mlxtend, plot_attributions, FeatureMap
 
 FILE = "/data_dzne_archiv2/Studien/ClinicNET/data/adni2/CAPS/subjects/sub-ADNI002S0729/ses-M60/deeplearning_prepare_data/image_based/t1_linear/sub-ADNI002S0729_ses-M60_T1w_space-MNI152NLin2009cSym_desc-Crop_res-1x1x1_T1w.pt"
 LABEL = "AD"
 
 
 def get_item(file_path: str, shift: int):
+    """
+    Gets a coronal slice.
+    :param file_path: file path
+    :param shift: shift in respect to the middle slice (m), thus a slice m+shift will be selected
+    :return: a coronal slice
+    """
     slice_data = torch.load(file_path, map_location="cuda")
     slice_data.requires_grad = True
     slice_data = slice_data.squeeze(dim=0)
@@ -24,15 +33,20 @@ def get_item(file_path: str, shift: int):
     return coronal_view
 
 
-# sample = get_item(FILE)
-# backbone = torchvision.models.convnext_tiny()
-# backbone = nn.Sequential(*list(backbone.children())[:-1])
-# backbone = NNCLR.load_state_dict_(backbone,
-#                                   '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed32/one_slice_nnclr_epoch_2000.ckpt')
-#
-# visual_filter = FeatureMap(backbone)
-# visual_filter.extract_conv_weights()
-# visual_filter.visualize_feature_maps(sample)
+# Setup:
+with open('./configuration/configuration.yaml', 'r') as stream:
+    settings = yaml.load(stream, yaml.Loader)
+figures_folder = create_folder(settings['working_dir'], "figures/")
+sample = get_item(file_path=FILE, shift=0)
+backbone = torchvision.models.convnext_tiny()
+backbone = nn.Sequential(*list(backbone.children())[:-1])
+backbone = NNCLR.load_state_dict_(backbone,
+                                  '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed32/one_slice_nnclr_epoch_2000.ckpt')
+
+# Plot feature maps:
+visual_filter = FeatureMap(backbone)
+visual_filter.extract_conv_weights()
+visual_filter.visualize_feature_maps(sample, figures_folder)
 
 # Plot attributions
 backbone = get_convnext()

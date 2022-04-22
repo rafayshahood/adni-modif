@@ -32,7 +32,7 @@ class DataReader:
     @staticmethod
     def search_files(caps_directories: List[str]) -> pd.DataFrame:
         """
-        Search for all PyTorch tensors containing information about an MRI scan.
+        Searches for all PyTorch tensors containing information about an MRI scan.
         :param caps_directories: a list of the paths to the CAPS directories.
         :return: the pandas data frame containing the ID of a patient, the ID of a session, and the path to a PyTorch.
         tensor.
@@ -145,9 +145,8 @@ class DataReader:
     def select_columns(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Selects only specific columns.
-        :param data: pd.DataFrame
-        :param columns: a list of columns
-        :return: pd.DataFrame
+        :param data: DataFrame object
+        :return: filtered DataFrame object
         """
         for col in self.columns:
             if col not in data.columns:
@@ -158,8 +157,8 @@ class DataReader:
     def filter_on_quality(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Filters samples based on MMSE values.
-        :param data: pd.DataFrame
-        :return: filtered pd.DataFrame
+        :param data: DataFrame object
+        :return: filtered DataFrame object
         """
 
         if 'MMS' in data.columns:
@@ -177,7 +176,7 @@ class DataReader:
 
     def read_info_data(self, info_data_list: List[str]) -> pd.DataFrame:
         """
-        Read the information about available MRI scans in the TSV files.
+        Reads the information about available MRI scans in the TSV files.
         :param info_data_list: a list of the paths to the TSV files containing targets/labels.
         :return: the pandas data frame containing the ID of a patient, the ID of a session, and the corresponding
         target/label.
@@ -206,7 +205,7 @@ class DataReader:
 
     def get_files_and_labels(self, caps_directories: List[str], info_data: List[str]) -> pd.DataFrame:
         """
-        Search for PyTorch tensors in the CAPS directories and for the corresponding targets/labels in TSV files.
+        Searches for PyTorch tensors in the CAPS directories and for the corresponding targets/labels in TSV files.
         :param caps_directories: a list of the paths to the CAPS directories.
         :param info_data: a list of the paths to the TSV files containing targets/labels.
         """

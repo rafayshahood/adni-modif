@@ -8,12 +8,12 @@ from torch.utils import data as torch_data
 from torch.utils.data import Subset
 
 from configuration.configuration import Configuration
-from data_processing.data_provider import DataProviderSSL
+from data_processing.data_provider import DataProvider
 from data_processing.data_reader import DataReader
 from data_processing.utils import Mode
 
 
-class DataLoaderSSL:
+class DataLoader:
     """
     Creates train and test/evaluation loaders
     """
@@ -68,7 +68,7 @@ class DataLoaderSSL:
 
     def split_data(self, targets: list, diagnoses: list) -> Tuple[Subset, Subset]:
         """
-        Split data into training and evaluation sets
+        Splits data into train and evaluation sets
         :param targets: Targets/Labels/Diagnoses as int values
         :param diagnoses: Diagnoses as str values
         :return: training and evaluation sets
@@ -112,8 +112,8 @@ class DataLoaderSSL:
             logging.info("Counts: {}".format(dict(zip(list(values), [list(values).count(i) for i in list(values)]))))
 
         # Create a dataset for accessing samples:
-        dataset = DataProviderSSL(self.data.data['file'].tolist(), targets, diagnoses,
-                                  self.configuration.slices_range, self.mode)
+        dataset = DataProvider(self.data.data['file'].tolist(), targets, diagnoses,
+                               self.configuration.slices_range, self.mode)
 
         train_dataset = torch_data.Subset(dataset, train_idx)
         eval_dataset = torch_data.Subset(dataset, eval_idx)
@@ -122,13 +122,13 @@ class DataLoaderSSL:
 
     def create_data_loader(self) -> None:
         """
-        Create data loader.
+        Creates data loader.
         """
         if self.mode == Mode.independent_evaluation:
             # Create a dataset for accessing samples:
-            eval_dataset = DataProviderSSL(self.data.data['file'].tolist(), self.data.data['target'].tolist(),
-                                           self.data.data['diagnosis'].tolist(),
-                                           self.configuration.slices_range, self.mode)
+            eval_dataset = DataProvider(self.data.data['file'].tolist(), self.data.data['target'].tolist(),
+                                        self.data.data['diagnosis'].tolist(),
+                                        self.configuration.slices_range, self.mode)
             self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=True,
                                                      num_workers=8)
 
