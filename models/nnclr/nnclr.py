@@ -81,7 +81,7 @@ class NNCLR(nn.Module):
         :param conf_id: configuration ID
         :return: name of the component
         """
-        return "{}_seed-{}_conf_id-{}".format(NAME_PREFIX, seed, conf_id)
+        return "nnclr_seed-{}_conf_id-{}".format(seed, conf_id)
 
     def freeze_layers(self, last_mbconv_blocks: int = 2):
         """

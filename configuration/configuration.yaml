@@ -55,7 +55,7 @@ data:
 # NNCLR settings:
 nnclr:
   checkpoint_resume: ''  # if provided a model will be loaded and trained further. The same model is used for all seeds!
-  epochs: 10
+  epochs: 2000
   save_nepoch: 10  # a model will be saved every nth epoch
   batch_size: 150
   trainable_layers: 0  # only the last n nn.Sequential blocks and other layers afterwards will be trained (0 means that all layers will be trained)
