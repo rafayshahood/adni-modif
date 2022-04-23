@@ -1,7 +1,7 @@
 # Clinic-NET
 
 Explainable Differential Diagnosis of Dementia using Self-supervised Learning.
-The proposed method is based on Nearest-Neighbor Contrastive Learning of Visual
+The proposed method is based on Nearest-Neighbour Contrastive Learning of Visual
 Representations (NNCLR) [1] using ConvNeXt Tiny [2] with 7x7 filter kernels.
 
 The following image visualizes the whole architecture:
@@ -9,11 +9,14 @@ The following image visualizes the whole architecture:
 ![Architecture](./images/architecture.png)
 
 ## Repository structure:
-- `data` folder is used to store or reference data
 - `configuration` folder contains the YAML file for the configuration
 - `data_processing` folder contains the methods that are used to prepare data for a model
 - `models` folder defines a model structure
-- Output will be saved into the folder `output`
+- `run_nnclr.py` trains the NNCLR model
+- `run_classifier.py` trains the classification model
+- `run_indep_eval.py` evaluates the whole model on independent data
+- `run_nnclr.py` creates figures
+- All output information will be saved into the working folder (see `configuration.yaml`)
 
 ## Datasets are accessible through http://adni.loni.usc.edu/, if not otherwise stated:
 - (in use) ADNI. Alzheimer's Disease Neuroimaging Initiatve
@@ -40,7 +43,7 @@ See also /data_dzne_archiv2/Studien/ClinicNET/data/
 /data/dataset_name/data/folder_with_extracted_data (e.g. /data/nifd/data/NIFD). 
 Also download clinical data and place it into the clinical_data folder (e.g. /data/nifd/clinical_data). 
 Of course, a symbolic link can be used instead of using the dataset directory directly (e.g. `ln -s source link`)
-- folow the instructions on https://aramislab.paris.inria.fr/clinica/docs/public/latest/
+- follow the instructions on https://aramislab.paris.inria.fr/clinica/docs/public/latest/
 how to use dataset converters: e.g. 
 `clinica convert nifd-to-bids [OPTIONS] DATASET_DIRECTORY CLINICAL_DATA_DIRECTORY BIDS_DIRECTORY`
 - run `clinica run t1-linear [OPTIONS] BIDS_DIRECTORY CAPS_DIRECTORY`
@@ -56,11 +59,8 @@ for more details
 labels)
 - Configurations are defined in the `configuration/configuration.yaml` file:
   - Block `data` contains settings on how to select slices and what labels to consider
-  - `nnclr`, `linear_eval`, and `independent_linear_eval` blocks are used to set parameters for 
+  - `nnclr`, `classifier`, and `independent_evaluation` blocks are used to set parameters for 
 training/evaluation and load specific dataset
-- Use `train_nnclr.py` to train the NNCLR model
-- Use `train_linear_evaluation.py` to train a linear layer on top of the NNCLR model
-- Use `eval_nnclr.py` to evaluate the whole model
 - Do you want to use your own dataset? Extend the code in `clinica` and `clinicadl` libraries:
   1. Conversion to BIDS: see `clinica/clinica/iotools/converters` to imitate the same structure
   2. T1-pipeline: see `clinica/clinica/pipelines/t1_linear` if in some places additional references
