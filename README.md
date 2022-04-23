@@ -204,12 +204,7 @@ appropriate places:
     ![Confusion matrix maps](./images/cm.png)
   - `CN` vs `AD` using the independent dataset OASIS: 
     - MCC is 0.03; Recall is 0.14; Precision is 0.26
-
-## Next steps
-- ADNI GO for the independent evaluation
-- Visualisation of features using t-SNE
-- Visualisation of image regions that constitute the highest impact on the classifier's prediction for one particular sample
-
+    
 ## References:
 [1] Dwibedi, D., Aytar, Y., Tompson, J., Sermanet, P., & Zisserman, A. (2021).
 With a Little Help From My Friends: Nearest-Neighbor Contrastive Learning of Visual Representations.
