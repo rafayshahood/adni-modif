@@ -9,11 +9,11 @@ from configuration.configuration import Configuration
 from data_processing.data_loader import DataLoader
 from data_processing.data_reader import DataReader
 from data_processing.utils import Mode, set_seed, set_logging
-from models.nnclr.nnclr import NNCLR, get_convnext
+from models.nnclr.nnclr import NNCLR, get_convnext, LOG_IDENTIFIER
 
 # Load a configuration file and set logging
 configuration = Configuration(mode=Mode.training)
-set_logging(configuration.logs_folder, suffix="nnclr")
+set_logging(configuration.logs_folder, suffix=LOG_IDENTIFIER)
 
 for seed in configuration.seeds:
     # Set-up seeds:

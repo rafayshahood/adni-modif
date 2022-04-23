@@ -9,7 +9,7 @@ from configuration.configuration import Configuration
 from data_processing.data_loader import DataLoader, Mode
 from data_processing.data_reader import DataReader
 from data_processing.utils import set_seed, set_logging
-from models.nnclr.classifier import ClassificationModel
+from models.nnclr.classifier import ClassificationModel, LOG_IDENTIFIER_CLASSIFIER
 from models.nnclr.nnclr import NNCLR, get_convnext
 
 
@@ -59,7 +59,7 @@ def execute(conf: Configuration, freeze_backbone: bool):
 
 
 configuration = Configuration(mode=Mode.classifier)  # Load a configuration file
-set_logging(log_dir=configuration.logs_folder, suffix="evaluation")  # logging
+set_logging(log_dir=configuration.logs_folder, suffix=LOG_IDENTIFIER_CLASSIFIER)  # logging
 
 search_backbone = False
 for seed in configuration.seeds:

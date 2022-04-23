@@ -23,7 +23,7 @@ def get_convnext():
     return backbone
 
 
-NAME_PREFIX = "nnclr"
+LOG_IDENTIFIER = "nnclr"
 
 
 class NNCLR(nn.Module):
@@ -185,3 +185,4 @@ class NNCLR(nn.Module):
                 self.save(configuration.nnclr_conf.checkpoint_folder)
             avg_loss = total_loss / len(data_loader)
             logging.info(f"epoch: |{epoch:>02}|, loss: |{avg_loss:.5f}|")
+

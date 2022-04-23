@@ -110,3 +110,10 @@ independent_evaluation:
     - MCI
     - AD
 
+# Setting for the visualisation
+visualisation:
+  backbone_checkpoint: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed32/one_slice_nnclr_epoch_2000.ckpt'
+  classifier_checkpoint: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed32/one_slice_le.ckpt'
+  log_dir: '/mnt/ssd2/ClinicNET/work_dir/logs/'
+
+

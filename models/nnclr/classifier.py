@@ -16,6 +16,9 @@ from torchmetrics import MetricCollection, Accuracy, Precision, Recall, F1, Conf
 
 from configuration.configuration import Configuration
 
+LOG_IDENTIFIER_CLASSIFIER = "classification_model"
+LOG_IDENTIFIER_INDEPENDENT_EVALUATION = "independent_evaluation"
+
 
 class LayerNorm2d(nn.LayerNorm):
     """

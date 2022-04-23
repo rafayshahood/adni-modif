@@ -12,11 +12,11 @@ from configuration.configuration import Configuration
 from data_processing.data_loader import DataLoader, Mode
 from data_processing.data_reader import DataReader
 from data_processing.utils import set_logging, set_seed
-from models.nnclr.classifier import ClassificationModel
+from models.nnclr.classifier import ClassificationModel, LOG_IDENTIFIER_INDEPENDENT_EVALUATION
 from models.nnclr.nnclr import get_convnext
 
 configuration = Configuration(mode=Mode.independent_evaluation)  # Load a configuration file
-set_logging(log_dir=configuration.logs_folder, suffix="independent_evaluation")  # logging
+set_logging(log_dir=configuration.logs_folder, suffix=LOG_IDENTIFIER_INDEPENDENT_EVALUATION)  # logging
 set_seed(seed=configuration.ind_eval_conf.seed)  # set seed for the reproducibility of the results
 
 # Data:

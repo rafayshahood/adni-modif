@@ -1,34 +1,25 @@
+import logging
+import os
 import re
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import scipy.stats
 import seaborn as sns
 import torch
 from captum.attr import IntegratedGradients, NoiseTunnel
 from captum.attr._utils.visualization import visualize_image_attr
+from matplotlib import pyplot
 from mlxtend.plotting import plot_confusion_matrix
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE as TSNE_sklearn
+from sklearn.metrics import roc_curve, roc_auc_score
 from torch import nn
 from tsnecuda import TSNE
 
-import logging
-import os
-import random
-import shutil
-from enum import Enum
-from shutil import copy2
 
-import matplotlib.pyplot as plt
-import numpy as np
-import scipy.stats
-import seaborn as sns
-import torch
-from matplotlib import pyplot
-from sklearn.metrics import roc_curve, roc_auc_score
-from torch.backends import cudnn
 def plot_cm_mlxtend(conf_matrix, title, suffix):
     fig, ax = plot_confusion_matrix(conf_mat=conf_matrix, figsize=(6, 6), cmap=plt.cm.Greens)
     plt.xlabel('Predictions', fontsize=18)
@@ -39,7 +30,7 @@ def plot_cm_mlxtend(conf_matrix, title, suffix):
     plt.close()
 
 
-def plot_loss_figure(log_files, suffix):
+def plot_loss_figure(log_files, suffix, out_dir):
     epochs = []
     losses = []
     for log_file in log_files:
@@ -51,8 +42,8 @@ def plot_loss_figure(log_files, suffix):
     epochs = [float(x) for x in epochs]
     losses = [float(x) for x in losses]
     sns.lineplot(x=epochs, y=losses, ci="sd")
-    plt.savefig("./images/{}.pdf".format(suffix), format="pdf")
-    plt.savefig("./images/{}.png".format(suffix), format="png")
+    plt.savefig("{}{}.pdf".format(out_dir, suffix), format="pdf")
+    plt.savefig("{}{}.png".format(out_dir, suffix), format="png")
     plt.close()
 
 
@@ -149,6 +140,7 @@ def plot_3d_tsne(data: np.array,
     fig.update_traces(marker_size=4)
     fig.show()
 
+
 def plot_density(data, filename):
     data.loc[data['Group'] == 0, 'Group'] = "Control"
     data.loc[data['Group'] == 1, 'Group'] = "Patient"
@@ -215,8 +207,6 @@ def mean_confidence_interval(data, confidence=0.95):
     h = se * scipy.stats.t.ppf((1 + confidence) / 2., n - 1)
     print("Mean: {}; SE: {}".format(m, se))
     return m, m - h, m + h, se
-
-
 
 
 class FeatureMap:
@@ -291,10 +281,19 @@ def plot_attributions(sample, model, target, name):
     fig.savefig("/mnt/ssd2/ClinicNET/output/{}.png".format(name), format="png")
 
 
-# mcc = [0.4294, 0.4318, 0.4167]
-# precision = [0.5729, 0.5766, 0.5583]
-# recall = [0.6978, 0.6970, 0.6861]
-# mean_confidence_interval(mcc)
+def search_for_files(search_dir: str, file_identifier: str):
+    """
+    Searches for files within a directory.
+    :param search_dir:  a search directory
+    :param file_identifier: an identifier for relevant files
+    :return: a list of found files
+    """
+    paths = []
+    for root, dirs, files in os.walk(search_dir):
+        for name in files:
+            if file_identifier in name:
+                paths.append(os.path.join(os.path.abspath(root), name))
+    return paths
 
 
 # input_dir = "/mnt/ssd2/ClinicNET/data/adni3/CAPS/subjects/"
