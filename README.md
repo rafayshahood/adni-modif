@@ -128,7 +128,7 @@ training/evaluation and load specific dataset
     - horizontal flip
 
 
-- Training of a classifier blocks:
+- Training of a classifier:
   - ConvNeXt Tiny CNN model serves as a feature extractor and is not trained
   - training sets of ADNI3, ADNI2, AIBL, NIFD
   - 1,000 epochs
