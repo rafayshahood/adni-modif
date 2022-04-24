@@ -32,7 +32,7 @@ The following image visualizes the whole architecture:
 
 See also /data_dzne_archiv2/Studien/ClinicNET/data/
 
-## Set-up Instructions:
+## Set-up Instructions & data preparations:
 - `sudo apt-get install dcm2niix`
 - install ANTs: https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS
 - `pip3 install captum lightly openpyxl plotly mlxtend zennit nibabel torch_tb_profiler`
@@ -45,7 +45,7 @@ Also download clinical data and place it into the clinical_data folder (e.g. /da
 Of course, a symbolic link can be used instead of using the dataset directory directly (e.g. `ln -s source link`)
 - follow the instructions on https://aramislab.paris.inria.fr/clinica/docs/public/latest/
 how to use dataset converters: e.g. 
-`clinica convert nifd-to-bids [OPTIONS] DATASET_DIRECTORY CLINICAL_DATA_DIRECTORY BIDS_DIRECTORY`
+`clinica convert nifd-to-bids [OPTIONS] DATASET_DIRECTORY CLINICAL_DATA_DIRECTORY BIDS_DIRECTORY`.
 - run `clinica run t1-linear [OPTIONS] BIDS_DIRECTORY CAPS_DIRECTORY`
 See also https://aramislab.paris.inria.fr/clinica/docs/public/latest/Pipelines/T1_Linear/
 for more details
@@ -69,57 +69,6 @@ training/evaluation and load specific dataset
   are needed, however the pipeline should not depend on additional information
 
 
-## PPMI dataset
-- Download imaging data through adni website. The process is similar to available datasets.
-When the imaging data are added to collection, download the collection metadata in tabular form
-(see instructions for the NIFD dataset)
-
-## Additional info and known issues
-- delete files: `find . -name '*pattern*' -exec rm {} \;`
-- unzip files: `unzip "file_name*.zip" -d output_dir/`
-- running out of storage place. Clinica uses tmp directory for intermediate calculations. 
-If you want to provide another location, do: `export TEMP=/new_location/` or `export TMP=/new_location/` or 
-`export TMPDIR=/new_location/` based on your settings
-- clinicadl (version 1.0.3) requires clinica==0.4.1
-- if `InvalidIndexError` occurs, insert (line 157):
-    <pre>    
-    
-    if not merged_df.empty:
-        merged_df = merged_df.append(row_df)
-    else:
-        merged_df = row_df.copy()
-    
-    </pre>
-
-- if an error `ValueError: cannot reindex from a duplicate axis` occurs insert after line 167:
-    <pre>
-    merged_df = merged_df.reset_index(drop=True)
-    merged_df = merged_df.loc[:, ~merged_df.columns.duplicated()]
-    </pre>
-
-- (NIFD) T1w MRI file for the subject sub-NIFD1S0017 with session ses-M00 does not exist and thus is removed
-- PyCharm does not have enough space: set the variables idea.system.path=/path
-idea.log.path=/data_dzne_archiv/Studien/ClinicNET/temp/log/
-- `Warning: Assuming 7FE0,0010 refers to an icon not the main image`. 
-This warning was ignored. Upgrade of dcm2niix did not help.
-- `pandas.errors.ParserError: Expected 36 fields in line 80, saw 37`. This error occurs
-while parsing the file 'aibl_flutemeta*.csv'. Fix: replace 'measured, AUSTIN AC AT Brain  H19s'
-through 'measured AUSTIN AC AT Brain  H19s'.
-- `File not found` error during the execution of the command ``xxxx-to-bids`.  To
-overcome the termination of the process, type `continue` in a file `clinica -> utils -> inputs.py`
-just before where the errors are collected: line 309 (08.02.2022, clinica=0.5.3)
-- `dx1` is instead of `diagnosis` as a column name during processing of the OASIS dataset. 
-Insert the following into the file `clinica/clinica/iotools/utils/data_handling.py` at the
-appropriate places:
-
-<pre>
-            if 'dx1' in sessions_df.columns:
-                sessions_df.rename(
-                    columns={
-                        "dx1": "diagnosis",
-                    }, inplace=True,
-                )
-</pre>
 
 
 ## Current state and results
@@ -211,3 +160,54 @@ With a Little Help From My Friends: Nearest-Neighbor Contrastive Learning of Vis
 <em> In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)</em>, 9588-9597.
 
 [2] Liu, Z., Mao, H., Wu, C.Y., Feichtenhofer, C., Darrell, T., & Xie, S.. (2022). A ConvNet for the 2020s. 
+
+
+
+------------------------------------------------------------------------------------------------------------------------
+## Additional info and known issues
+- delete files: `find . -name '*pattern*' -exec rm {} \;`
+- unzip files: `unzip "file_name*.zip" -d output_dir/`
+- running out of storage place. Clinica uses tmp directory for intermediate calculations. 
+If you want to provide another location, do: `export TEMP=/new_location/` or `export TMP=/new_location/` or 
+`export TMPDIR=/new_location/` based on your settings
+- clinicadl (version 1.0.3) requires clinica==0.4.1
+- if `InvalidIndexError` occurs, insert (line 157):
+    <pre>    
+    
+    if not merged_df.empty:
+        merged_df = merged_df.append(row_df)
+    else:
+        merged_df = row_df.copy()
+    
+    </pre>
+
+- if an error `ValueError: cannot reindex from a duplicate axis` occurs insert after line 167:
+    <pre>
+    merged_df = merged_df.reset_index(drop=True)
+    merged_df = merged_df.loc[:, ~merged_df.columns.duplicated()]
+    </pre>
+
+- (NIFD) T1w MRI file for the subject sub-NIFD1S0017 with session ses-M00 does not exist and thus is removed
+- PyCharm does not have enough space: set the variables idea.system.path=/path
+idea.log.path=/data_dzne_archiv/Studien/ClinicNET/temp/log/
+- `Warning: Assuming 7FE0,0010 refers to an icon not the main image`. 
+This warning was ignored. Upgrade of dcm2niix did not help.
+- `pandas.errors.ParserError: Expected 36 fields in line 80, saw 37`. This error occurs
+while parsing the file 'aibl_flutemeta*.csv'. Fix: replace 'measured, AUSTIN AC AT Brain  H19s'
+through 'measured AUSTIN AC AT Brain  H19s'.
+- `File not found` error during the execution of the command ``xxxx-to-bids`.  To
+overcome the termination of the process, type `continue` in a file `clinica -> utils -> inputs.py`
+just before where the errors are collected: line 309 (08.02.2022, clinica=0.5.3)
+- `dx1` is instead of `diagnosis` as a column name during processing of the OASIS dataset. 
+Insert the following into the file `clinica/clinica/iotools/utils/data_handling.py` at the
+appropriate places:
+
+<pre>
+            if 'dx1' in sessions_df.columns:
+                sessions_df.rename(
+                    columns={
+                        "dx1": "diagnosis",
+                    }, inplace=True,
+                )
+</pre>
+
