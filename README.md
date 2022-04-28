@@ -72,15 +72,20 @@ training/evaluation and load specific dataset
 
 
 ## Current state and results
-- NNCLR training: `ADNI3`, `ADNI2`, `NIFD`, `AIBL`
-- Independent evaluation: `OASIS`
-- Sample statistics of ADNI3 (N=2368, Patients=847):
+- NNCLR training: `ADNI3`, `ADNI2`, `NIFD`, `OASIS`, `PPMI`
+- Classifier training: `ADNI3`, `ADNI2`, `NIFD`
+- Training trials: 3 (each trial new train and test sets are created that are the same for NNCLR and classifier models)
+- Training samples (NNCLR): 6644
+- Training samples (Classifier): TODO
+- Test samples (Classifier): 1599
+- Independent evaluation: `AIBL`
+- Sample statistics of ADNI3 (N=2365, Patients=844):
 
 |           |  CN       | AD         |  MCI        |
 |-----------|-----------|------------|-------------|
 | Age       |73.99(7)   |76.96(8.31) |74.57(7.97)  |   
 | MMSE      |29.38(0.73)|20.84(4.50) |27.85(1.10)  |
-| Sex: F/M  |313/221    |52/70       |140/175      |
+| Sex: F/M  |312/221    |52/70       |140/173      |
 
 - Sample statistics of ADNI2 (N=1836, Patients=743):
 
@@ -98,14 +103,6 @@ training/evaluation and load specific dataset
 | MMSE      |29.20(0.77)|19.45(5.57) |27.17(1.25)  |
 | Sex: F/M  |239/182    |51/37       |41/62        |
 
-- Sample statistics of OASIS (N=2012, Patients=1079):
-
-|           |  CN       | AD         |
-|-----------|-----------|------------|
-| Age       |66.74(9.52)|69.20(9.29) |   
-| MMSE      |28.89(0.89)|28.97(0.25) |
-| Sex: F/M  |517/413    |172/136     |
-
 - Sample statistics of NIFD (N=614, Patients=273):
 
 |           |  CN       | BV         |  SV         |  PNFA       |
@@ -114,10 +111,12 @@ training/evaluation and load specific dataset
 | MMSE      |29.68(0.47)|22.56(6.22) |22.48(5.74)  |24.92(5.50)  |
 | Sex: F/M  |72/58      |23/48       |14/23        |19/16
 
+- Sample statistics of OASIS: N=2012, Patients=1079:
+- Sample statistics of OASIS: N=1411, Patients=835:
+
 - NNCLR training:
-  - training sets of ADNI3, ADNI2, AIBL, NIFD
-  - 1,000 epochs
-  - a batch size of 128
+  - 2,000 epochs
+  - a batch size of 150
   - nearest neighbour size: 8192
   - ConvNeXt Tiny CNN model with 7x7 filter kernel
   - data preparation for each sample:
@@ -130,7 +129,6 @@ training/evaluation and load specific dataset
 
 - Training of a classifier:
   - ConvNeXt Tiny CNN model serves as a feature extractor and is not trained
-  - training sets of ADNI3, ADNI2, AIBL, NIFD
   - 1,000 epochs
   - a batch size of 32
   - features dimension from ConvNeXt Tiny CNN model: 768
