@@ -36,7 +36,6 @@ class ClassifierConfiguration:
         """
         self.epochs = settings['epochs']
         self.batch_size = settings['batch_size']
-        self.backbone_checkpoint = settings['backbone_checkpoint']
         self.checkpoint_folder_save = ckpt_dir
         self.replicas = settings['replicas']
         self.replicas_extraction = settings['replicas_extraction']

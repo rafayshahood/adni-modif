@@ -77,7 +77,7 @@ class DataLoader:
         patients = self.data.data['patient'].tolist()  # A list of patient IDs
 
         # Get indices of training and evaluation sets:
-        train_pt_indices, eval_pt_indices = train_test_split(list(range(len(patients))), test_size=0.5,
+        train_pt_indices, eval_pt_indices = train_test_split(list(range(len(patients))), test_size=0.4,
                                                              stratify=targets)
 
         # Samples from multiple sessions of one patient should appear only in one set: either training or evaluation:
@@ -120,16 +120,17 @@ class DataLoader:
         logging.info("IDs: {}".format(eval_idx))
         return train_dataset, eval_dataset
 
-    def create_data_loader(self) -> None:
+    def create_data_loader(self, shuffle: bool = True) -> None:
         """
         Creates data loader.
+        :type shuffle: if True, then eval loader will shuffle data samples before sampling, otherwise not
         """
         if self.mode == Mode.independent_evaluation:
             # Create a dataset for accessing samples:
             eval_dataset = DataProvider(self.data.data['file'].tolist(), self.data.data['target'].tolist(),
                                         self.data.data['diagnosis'].tolist(),
                                         self.configuration.slices_range, self.mode)
-            self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=True,
+            self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=shuffle,
                                                      num_workers=8)
 
             self.train_loader = None
@@ -156,4 +157,5 @@ class DataLoader:
         self.train_loader = torch_data.DataLoader(train_dataset,
                                                   batch_size=self.batch_size,
                                                   shuffle=True, num_workers=8)
-        self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=True, num_workers=8)
+        self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=shuffle,
+                                                 num_workers=8)

@@ -29,7 +29,8 @@ class DataProvider(Dataset):
     Provides the access to data.
     """
 
-    def __init__(self, files: list, targets: list, diagnoses: list, slices_range: int, mode: Mode) -> None:
+    def __init__(self, files: list, targets: list, diagnoses: list, slices_range: int, mode: Mode,
+                 middle_slice: bool = False) -> None:
         """
         Initialize with all required attributes.
         :param files: paths to data
@@ -37,6 +38,7 @@ class DataProvider(Dataset):
         :param diagnoses: diagnoses as str values
         :param slices_range: the range from which slices will be sampled
         :param mode: Mode object
+        :param middle_slice: If True then always a middle coronal slice will be selected, otherwise a random slice
         """
         self.transform_func = get_transform_functions()
         self.files = files
@@ -45,6 +47,7 @@ class DataProvider(Dataset):
         self.slices_range = slices_range
         self.nr_samples = len(self.targets)
         self.mode = mode
+        self.middle_slice = middle_slice
 
     def __len__(self) -> int:
         """
@@ -67,9 +70,12 @@ class DataProvider(Dataset):
 
         middle_point = int(slice_data.shape[1] / 2)  # (m) idx of the middle slice across one plane
 
-        # a random value within the range [m-n, m+n]
-        reference_point = random.randrange(middle_point - int(self.slices_range / 2),
-                                           middle_point + int(self.slices_range / 2))
+        if self.middle_slice:
+            reference_point = middle_point
+        else:
+            # a random value within the range [m-n, m+n]
+            reference_point = random.randrange(middle_point - int(self.slices_range / 2),
+                                               middle_point + int(self.slices_range / 2))
 
         # view: select coronal slice, correct view by rotating, put channels first
         coronal_view = torch.rot90(slice_data[:, reference_point, :].unsqueeze(dim=0), k=1, dims=(1, 2))

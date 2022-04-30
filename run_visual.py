@@ -2,8 +2,8 @@ import torch
 import yaml
 
 from data_processing.utils import create_folder, get_item
-from models.nnclr.classifier import ClassificationModel, LOG_IDENTIFIER_CLASSIFIER
-from models.nnclr.nnclr import NNCLR, get_convnext, LOG_IDENTIFIER as NNCLR_LOG_IDENTIFIER
+from models.classifier import ClassificationModel, LOG_IDENTIFIER_CLASSIFIER
+from models.nnclr import NNCLR, get_convnext, LOG_IDENTIFIER as NNCLR_LOG_IDENTIFIER
 from visual.Visual import plot_loss_figure, plot_attributions, FeatureMap, \
     search_for_files
 

@@ -221,12 +221,11 @@ class ClassificationModel(torch.nn.Module):
                                               'cm': ConfusionMatrix(num_classes=self.num_classes)})
             metrics_torch.to(configuration.device)
 
-            for idx, (view_one, view_two, target) in enumerate(test_loader):
+            for idx, (view_one, _, target) in enumerate(test_loader):
                 # forward pass
                 view_one = view_one.to(configuration.device)
-                view_two = view_two.to(configuration.device)
 
-                output = self.forward(view_one if random() > 0.5 else view_two).squeeze(1)
+                output = self.forward(view_one).squeeze(1)
                 target = target.to(configuration.device)
                 _, predicted = torch.max(output, 1)
 
@@ -257,12 +256,11 @@ class ClassificationModel(torch.nn.Module):
         for replica in range(configuration.cls_conf.replicas):
             with torch.no_grad():
                 last_idx = 0
-                for idx, (view_one, view_two, target) in enumerate(test_loader):
+                for idx, (view_one, _, target) in enumerate(test_loader):
                     # forward pass
                     view_one = view_one.to(configuration.device)
-                    view_two = view_two.to(configuration.device)
 
-                    output = self.forward(view_one if random() > 0.5 else view_two).squeeze(1)
+                    output = self.forward(view_one).squeeze(1)
                     target = target.to(configuration.device)
 
                     _, predicted = torch.max(output, 1)
