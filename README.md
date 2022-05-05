@@ -12,10 +12,11 @@ The following image visualizes the whole architecture:
 - `configuration` folder contains the YAML file for the configuration
 - `data_processing` folder contains the methods that are used to prepare data for a model
 - `models` folder defines a model structure
-- `run_nnclr.py` trains the NNCLR model
-- `run_classifier.py` trains the classification model
-- `run_indep_eval.py` evaluates the whole model on independent data
-- `run_nnclr.py` creates figures
+- `run_train_nnclr.py` trains the NNCLR model
+- `run_train-classifier.py` trains the classification model
+- `run_classifier_indep_eval.py` evaluates the whole model on independent data
+- `run_classifier_evaluation.py` evaluates the whole model on the validation/test set
+- `run_visual` creates figures
 - All output information will be saved into the working folder (see `configuration.yaml`)
 
 ## Datasets are accessible through http://adni.loni.usc.edu/, if not otherwise stated:
@@ -72,12 +73,12 @@ training/evaluation and load specific dataset
 
 
 ## Current state and results
-- NNCLR training: `ADNI3`, `ADNI2`, `NIFD`, `OASIS`, `PPMI`
+- NNCLR training: `ADNI3`, `ADNI2`, `NIFD`
 - Classifier training: `ADNI3`, `ADNI2`, `NIFD`
 - Training trials: 3 (each trial new train and test sets are created that are the same for NNCLR and classifier models)
-- Training samples (NNCLR): 6644
-- Training samples (Classifier): TODO
-- Test samples (Classifier): 1599
+- Training samples (NNCLR): 4300
+- Training samples (Classifier): 4300
+- Test samples (Classifier): TODO
 - Independent evaluation: `AIBL`
 - Sample statistics of ADNI3 (N=2365, Patients=844):
 
@@ -115,8 +116,8 @@ training/evaluation and load specific dataset
 - Sample statistics of OASIS: N=1411, Patients=835:
 
 - NNCLR training:
-  - 2,000 epochs
-  - a batch size of 150
+  - 1,000 epochs
+  - a batch size of 180
   - nearest neighbour size: 8192
   - ConvNeXt Tiny CNN model with 7x7 filter kernel
   - data preparation for each sample:
@@ -130,7 +131,7 @@ training/evaluation and load specific dataset
 - Training of a classifier:
   - ConvNeXt Tiny CNN model serves as a feature extractor and is not trained
   - 1,000 epochs
-  - a batch size of 32
+  - a batch size of 64
   - features dimension from ConvNeXt Tiny CNN model: 768
   - classifier block that is trained: normalisation layer, flat operation, linear layer
 
@@ -149,8 +150,8 @@ training/evaluation and load specific dataset
     - MCC is 0.42+/-0.005; Recall is 0.69+/-0.004; Precision is 0.56+/-0.006
     - Confusion matrix:
     ![Confusion matrix maps](./images/cm.png)
-  - `CN` vs `AD` using the independent dataset OASIS: 
-    - MCC is 0.03; Recall is 0.14; Precision is 0.26
+  - `CN` vs `AD` vs `MCI` using the independent dataset AIBL: 
+    - MCC is ; Recall is ; Precision is 
     
 ## References:
 [1] Dwibedi, D., Aytar, Y., Tompson, J., Sermanet, P., & Zisserman, A. (2021).

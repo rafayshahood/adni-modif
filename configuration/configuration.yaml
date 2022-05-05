@@ -54,7 +54,7 @@ nnclr:
   checkpoint_resume: ''  # if provided a model will be loaded and trained further. The same model is used for all seeds!
   epochs: 1000
   save_nepoch: 10  # a model will be saved every nth epoch
-  batch_size: 196
+  batch_size: 180
   trainable_layers: 0  # only the last n nn.Sequential blocks and other layers afterwards will be trained (0 means that all layers will be trained)
   data:
     # A list of the paths to the CAPS directories:
@@ -80,8 +80,8 @@ classifier:
   eval_labels:  # only samples with these labels will be selected
     - CN
     - AD
-    - BV
     - MCI
+    - BV
 
 # Setting for the evaluation of the model on the independent datasets:
 independent_evaluation:
@@ -99,8 +99,8 @@ independent_evaluation:
         - '/mnt/ssd2/ClinicNET/data/aibl/info_data.tsv'
   eval_labels:
     - CN
-    - MCI
     - AD
+    - MCI
 
 # Setting for the visualisation
 visualisation:

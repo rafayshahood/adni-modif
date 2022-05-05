@@ -66,19 +66,24 @@ class DataLoader:
 
         return dataset
 
-    def split_data(self, targets: list, diagnoses: list) -> Tuple[Subset, Subset]:
+    def split_data(self, targets: list, diagnoses: list, test_size: float = 0.4) -> Tuple[Subset, Subset]:
         """
         Splits data into train and evaluation sets
         :param targets: Targets/Labels/Diagnoses as int values
         :param diagnoses: Diagnoses as str values
+        :param test_size: the proportion of samples that should be in a test set
         :return: training and evaluation sets
         """
 
         patients = self.data.data['patient'].tolist()  # A list of patient IDs
 
         # Get indices of training and evaluation sets:
-        train_pt_indices, eval_pt_indices = train_test_split(list(range(len(patients))), test_size=0.4,
-                                                             stratify=targets)
+        if test_size == 0.0:
+            train_pt_indices = list(range(len(patients)))
+            eval_pt_indices = []
+        else:
+            train_pt_indices, eval_pt_indices = train_test_split(list(range(len(patients))), test_size=test_size,
+                                                                 stratify=targets)
 
         # Samples from multiple sessions of one patient should appear only in one set: either training or evaluation:
         train_pt = []
@@ -102,7 +107,7 @@ class DataLoader:
                 train_idx.append(eval_idx_copy[idx])
         assert len(set(train_idx).intersection(set(eval_idx))) == 0
 
-        logging.info("Number of samples in training set: {}".format(len(train_idx)))
+        logging.info("Number of samples: {}".format(len(train_idx)))
         values = [diagnoses[i] for i in train_idx]
         logging.info("Counts: {}".format(dict(zip(list(values), [list(values).count(i) for i in list(values)]))))
 
@@ -125,19 +130,17 @@ class DataLoader:
         Creates data loader.
         :type shuffle: if True, then eval loader will shuffle data samples before sampling, otherwise not
         """
-        if self.mode == Mode.independent_evaluation:
-            # Create a dataset for accessing samples:
-            eval_dataset = DataProvider(self.data.data['file'].tolist(), self.data.data['target'].tolist(),
-                                        self.data.data['diagnosis'].tolist(),
-                                        self.configuration.slices_range, self.mode)
-            self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=shuffle,
-                                                     num_workers=8)
-
-            self.train_loader = None
-            return
 
         train_dataset, eval_dataset = self.split_data(self.data.data['target'].tolist(),
-                                                      self.data.data['diagnosis'].tolist())
+                                                      self.data.data['diagnosis'].tolist(),
+                                                      test_size=0.0 if self.mode == Mode.independent_evaluation else 0.4)
+
+        if self.mode == Mode.independent_evaluation:
+            dataset = self.filter_data(train_dataset, self.data.data['diagnosis'].tolist())
+            self.eval_loader = torch_data.DataLoader(dataset, batch_size=self.batch_size, shuffle=shuffle,
+                                                     num_workers=8)
+            self.train_loader = None
+            return
 
         if self.mode == Mode.classifier:
             # During evaluation another set of targets can be used:

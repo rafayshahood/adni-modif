@@ -143,9 +143,10 @@ class ClassificationModel(torch.nn.Module):
         """
         logging.info("Training of the classification model ...")
         model_children = list(self.feature_extractor.children())
-        for idx, child in enumerate(model_children):
-            for param in child.parameters():
-                param.requires_grad = False
+        if self.freeze_backbone:
+            for idx, child in enumerate(model_children):
+                for param in child.parameters():
+                    param.requires_grad = False
         if self.freeze_backbone:
             self.feature_extractor.eval()
         else:

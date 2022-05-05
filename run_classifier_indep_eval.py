@@ -39,9 +39,9 @@ linear_eval = ClassificationModel(backbone,
 linear_eval.load(file_path=configuration.ind_eval_conf.checkpoint_load,
                  device=configuration.device)  # load a saved model
 linear_eval.to(configuration.device)
-data_loader.eval_loader.dataset.dataset.middle_slice = True
+data_loader.eval_loader.dataset.middle_slice = True
 linear_eval.test_(configuration=configuration, test_loader=data_loader.eval_loader)  # one run for evaluation
-data_loader.eval_loader.dataset.dataset.middle_slice = False
+data_loader.eval_loader.dataset.middle_slice = False
 linear_eval.test_ext(configuration=configuration, test_loader=data_loader.eval_loader)  # multiple runs for evaluation
 linear_eval.extract_features(configuration=configuration, data_loader=data_loader.eval_loader,
                              file_name="independent_eval")
