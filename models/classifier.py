@@ -11,6 +11,7 @@ from torch import nn, Tensor
 from torch.nn import Sequential
 from torch.nn import functional as F
 from torch.optim import Adam
+from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils import data as torch_data
 from torchmetrics import MetricCollection, Accuracy, Precision, Recall, F1, ConfusionMatrix, MatthewsCorrcoef
 
@@ -70,7 +71,8 @@ class ClassificationModel(torch.nn.Module):
         else:
             self.ce = torch.nn.CrossEntropyLoss()
 
-        self.optimizer = Adam([{"params": self.classifier.parameters(), "lr": 0.001}])
+        self.optimizer = Adam([{"params": self.classifier.parameters(), "lr": 0.1, "weight_decay": 0.0001}])
+        self.scheduler = CosineAnnealingLR(optimizer=self.optimizer, T_max=100, eta_min=0.0, verbose=True)
         self.name = ""
 
     def set_name(self, seed, freeze_backbone, conf_id):
@@ -197,6 +199,7 @@ class ClassificationModel(torch.nn.Module):
             avg_loss = total_loss / len(train_loader)
             logging.info(f"epoch: |{epoch:>02}|, loss: |{avg_loss:.5f}|")
             logging.info("Train metrics: {}".format(metrics_torch.compute()))
+            self.scheduler.step()
 
     def test_(self, configuration: Configuration, test_loader: torch_data.DataLoader):
         """
