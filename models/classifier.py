@@ -39,13 +39,14 @@ class ClassificationModel(torch.nn.Module):
     """
 
     def __init__(self, feature_extractor: Sequential, num_classes: int, class_weights: ndarray = None,
-                 num_ftrs: int = 768, freeze_backbone: bool = True):
+                 num_ftrs: int = 768, freeze_backbone: bool = True, scheduler_iterations=10):
         """
         Initialises with the provided parameters.
         :param feature_extractor: the backbone
         :param num_classes: number of classes
         :param class_weights: class weights
         :param num_ftrs: number of features
+        :param scheduler_iterations: the maximum number of iterations for a scheduler
         :param freeze_backbone: if True then a backbone will be frozen, otherwise not
         """
         super(ClassificationModel, self).__init__()
@@ -71,8 +72,9 @@ class ClassificationModel(torch.nn.Module):
         else:
             self.ce = torch.nn.CrossEntropyLoss()
 
-        self.optimizer = Adam([{"params": self.classifier.parameters(), "lr": 0.1, "weight_decay": 0.0001}])
-        self.scheduler = CosineAnnealingLR(optimizer=self.optimizer, T_max=100, eta_min=0.0, verbose=True)
+        self.optimizer = Adam([{"params": self.classifier.parameters(), "lr": 0.001, "weight_decay": 0.0001}])
+        self.scheduler = CosineAnnealingLR(optimizer=self.optimizer, T_max=scheduler_iterations, eta_min=0.0000001,
+                                           verbose=True)
         self.name = ""
 
     def set_name(self, seed, freeze_backbone, conf_id):

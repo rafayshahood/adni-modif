@@ -155,6 +155,7 @@ class DataLoader:
             # Get the number of classes:
             self.classes = len(set([train_dataset.dataset.targets[i] for i in train_dataset.indices]))
             logging.info("# classes: {}".format(self.classes))
+            logging.info("Class weights: {}".format(self.class_weights))
 
         # Finally create data loaders that will be used during training/evaluation/feature extraction:
         self.train_loader = torch_data.DataLoader(train_dataset,

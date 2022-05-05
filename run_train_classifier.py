@@ -45,7 +45,8 @@ def execute(conf: Configuration, freeze_backbone: bool, backbone_ckpt: str):
     cls = ClassificationModel(feature_extractor=backbone,
                               num_classes=data_loader.classes,
                               class_weights=data_loader.class_weights,
-                              freeze_backbone=freeze_backbone)
+                              freeze_backbone=freeze_backbone,
+                              scheduler_iterations=configuration.cls_conf.epochs/5)
     cls.to(conf.device)
     cls.set_name(seed=seed, freeze_backbone=freeze_backbone, conf_id=configuration.id)
     logging.info(">>> Training")
