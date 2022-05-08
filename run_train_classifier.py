@@ -8,7 +8,7 @@ import logging
 from configuration.configuration import Configuration
 from data_processing.data_loader import DataLoader, Mode
 from data_processing.data_reader import DataReader
-from data_processing.utils import set_seed, set_logging
+from data_processing.utils import set_seed, set_logging, FREEZE_BACKBONE, SEED
 from models.classifier import ClassificationModel, LOG_IDENTIFIER_CLASSIFIER
 from models.nnclr import NNCLR, get_convnext
 
@@ -21,8 +21,8 @@ def execute(conf: Configuration, freeze_backbone: bool, backbone_ckpt: str):
     :param backbone_ckpt: Backbone checkpoint
     """
     set_seed(seed)  # set seed for the reproducibility of the results
-    logging.info("SEED: {}".format(seed))
-    logging.info("Freeze backbone: {}".format(freeze_backbone))
+    logging.info("{} {}".format(SEED, seed))
+    logging.info("{} {}".format(FREEZE_BACKBONE, freeze_backbone))
 
     # Data:
     data_paths = DataReader(caps_directories=conf.caps_directories,

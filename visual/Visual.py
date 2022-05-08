@@ -19,6 +19,10 @@ from sklearn.metrics import roc_curve, roc_auc_score
 from torch import nn
 from tsnecuda import TSNE
 
+from data_processing.utils import FREEZE_BACKBONE, SEED, string_to_bool
+
+sns.set(font_scale=1.6)
+
 
 def plot_cm_mlxtend(conf_matrix, title, suffix):
     fig, ax = plot_confusion_matrix(conf_mat=conf_matrix, figsize=(6, 6), cmap=plt.cm.Greens)
@@ -30,18 +34,34 @@ def plot_cm_mlxtend(conf_matrix, title, suffix):
     plt.close()
 
 
-def plot_loss_figure(log_files, suffix, out_dir):
+def plot_loss_figure(log_files, suffix, out_dir, title: str, is_classifier_mode: bool = False):
     epochs = []
     losses = []
+    backbone_identifiers = []
     for log_file in log_files:
         with open(log_file) as file:
+            search_backbone = True
+            backbone_identifier = None
             for line in file:
+                if search_backbone and is_classifier_mode and FREEZE_BACKBONE in line:
+                    backbone_identifier = int(string_to_bool(line.split(FREEZE_BACKBONE)[-1][:-1]))
+                    search_backbone = False
                 if "epoch:" in line:
                     epochs.append(re.search('\d+', line.split("epoch")[-1]).group())
                     losses.append(re.search('\d+\.\d+', line.split("loss")[-1]).group())
+                    backbone_identifiers.append("ConvNeXt is not trained" if backbone_identifier else "ConvNeXt is trained")
+                if SEED in line:
+                    search_backbone = True
+
     epochs = [float(x) for x in epochs]
     losses = [float(x) for x in losses]
-    sns.lineplot(x=epochs, y=losses, ci="sd")
+    if not is_classifier_mode:
+        ax = sns.lineplot(x=epochs, y=losses, ci="sd")
+    else:
+        ax = sns.lineplot(x=epochs, y=losses, ci="sd", hue=backbone_identifiers, style=backbone_identifiers,
+                          markers=False, dashes=True)
+    ax.set(xlabel="Epoch", ylabel="Training loss", title=title)
+    plt.tight_layout()
     plt.savefig("{}{}.pdf".format(out_dir, suffix), format="pdf")
     plt.savefig("{}{}.png".format(out_dir, suffix), format="png")
     plt.close()
@@ -294,7 +314,6 @@ def search_for_files(search_dir: str, file_identifier: str):
             if file_identifier in name:
                 paths.append(os.path.join(os.path.abspath(root), name))
     return paths
-
 
 # input_dir = "/mnt/ssd2/ClinicNET/data/adni3/CAPS/subjects/"
 # output_dir = "/mnt/ssd2/ClinicNET/data/temp/ADNI3/"

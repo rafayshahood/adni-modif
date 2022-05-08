@@ -1,6 +1,6 @@
 # General settings
 working_dir : "/mnt/ssd2/ClinicNET/work_dir/"
-id: v1  #  configuration version
+id: v3  #  configuration version
 seeds:
   - 32
   - 42
@@ -80,13 +80,11 @@ classifier:
   eval_labels:  # only samples with these labels will be selected
     - CN
     - AD
-    - MCI
-    - BV
 
 # Setting for the evaluation of the model on the independent datasets:
 independent_evaluation:
   seed: 1
-  checkpoint_load: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/cls_seed-32_freeze-True_conf_id-v1'
+  checkpoint_load: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/cls_seed-52_freeze-True_conf_id-v3'
   batch_size: 128
   replicas: 100  # for each sample n randomly selected slices are provided to predict a diagnosis
   replicas_extraction: 1  # extract sample's features from n random slices
@@ -100,12 +98,11 @@ independent_evaluation:
   eval_labels:
     - CN
     - AD
-    - MCI
 
 # Setting for the visualisation
 visualisation:
-  backbone_checkpoint: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed32/one_slice_nnclr_epoch_2000.ckpt'
-  classifier_checkpoint: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed32/one_slice_le.ckpt'
+  backbone_checkpoint: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/nnclr_seed-52_conf_id-v3'
+  classifier_checkpoint: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/cls_seed-52_freeze-True_conf_id-v3'
   log_dir: '/mnt/ssd2/ClinicNET/work_dir/logs/'
 
 

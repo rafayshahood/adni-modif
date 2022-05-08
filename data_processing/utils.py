@@ -6,6 +6,13 @@ import numpy as np
 import torch
 from torch.backends import cudnn
 
+# Identifiers that are defined globally and are accessed at different places:
+FREEZE_BACKBONE = "Freeze backbone:"
+SEED = "SEED:"
+
+
+def string_to_bool(value):
+    return value.lower().strip() in ("true", )
 
 class Mode(str, Enum):
     """"

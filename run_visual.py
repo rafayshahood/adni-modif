@@ -20,13 +20,13 @@ logs_dir = settings['visualisation']['log_dir']
 sample = get_item(file_path=FILE, shift=0)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# Plot feature maps:
-backbone = get_convnext()
-backbone = NNCLR.load_state_dict_(backbone, visual_backbone_ckpt)
-backbone.to(device)
-visual_filter = FeatureMap(backbone)
-visual_filter.extract_conv_weights()
-visual_filter.visualize_feature_maps(sample, figures_folder)
+# Plot the loss of NNCLR:
+plot_loss_figure(search_for_files(logs_dir, NNCLR_LOG_IDENTIFIER), suffix="loss_nnclr", out_dir=figures_folder,
+                 title="")
+
+# Plot the loss of the classification model:
+plot_loss_figure(search_for_files(logs_dir, "{}_4_".format(LOG_IDENTIFIER_CLASSIFIER)), suffix="loss_classifier",
+                 out_dir=figures_folder, is_classifier_mode=True, title="")
 
 # Plot attributions:
 backbone = get_convnext()
@@ -37,12 +37,13 @@ for i, k in enumerate(range(-10, 10)):
     sample = get_item(FILE, shift=k)
     plot_attributions(sample, linear_eval, target=0, name="attributions_IG_{}".format(i))
 
-# Plot the loss of NNCLR:
-plot_loss_figure(search_for_files(logs_dir, NNCLR_LOG_IDENTIFIER), suffix="loss_nnclr", out_dir=figures_folder)
-
-# Plot the loss of the classification model:
-plot_loss_figure(search_for_files(logs_dir, LOG_IDENTIFIER_CLASSIFIER), suffix="loss_classifier",
-                 out_dir=figures_folder)
+# Plot feature maps:
+backbone = get_convnext()
+backbone = NNCLR.load_state_dict_(backbone, visual_backbone_ckpt)
+backbone.to(device)
+visual_filter = FeatureMap(backbone)
+visual_filter.extract_conv_weights()
+visual_filter.visualize_feature_maps(sample, figures_folder)
 
 # mcc = [0.4294, 0.4318, 0.4167]
 # precision = [0.5729, 0.5766, 0.5583]

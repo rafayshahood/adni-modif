@@ -8,7 +8,7 @@ import logging
 from configuration.configuration import Configuration
 from data_processing.data_loader import DataLoader, Mode
 from data_processing.data_reader import DataReader
-from data_processing.utils import set_seed, set_logging
+from data_processing.utils import set_seed, set_logging, SEED
 from models.classifier import ClassificationModel, LOG_IDENTIFIER_CLASSIFIER
 from models.nnclr import get_convnext
 
@@ -20,7 +20,7 @@ def execute(conf: Configuration, ckpt_folder: str):
     :param freeze_backbone: if True, then a backbone will be frozen, otherwise not.
     """
     set_seed(seed)  # set seed for the reproducibility of the results
-    logging.info("SEED: {}".format(seed))
+    logging.info("{} {}".format(SEED, seed))
 
     # Data:
     data_paths = DataReader(caps_directories=conf.caps_directories,

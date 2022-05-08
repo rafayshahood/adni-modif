@@ -13,7 +13,8 @@ from torch.nn import functional as F
 from torch.optim import Adam
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils import data as torch_data
-from torchmetrics import MetricCollection, Accuracy, Precision, Recall, F1, ConfusionMatrix, MatthewsCorrcoef
+from torchmetrics import MetricCollection, Accuracy, Precision, Recall, F1, ConfusionMatrix, MatthewsCorrcoef, \
+    Specificity
 
 from configuration.configuration import Configuration
 
@@ -215,13 +216,14 @@ class ClassificationModel(torch.nn.Module):
         self.classifier.eval()
 
         with torch.no_grad():
-            metrics_torch = MetricCollection({'acc': Accuracy(compute_on_step=False, num_classes=self.num_classes),
-                                              'precision': Precision(compute_on_step=False, average='macro',
-                                                                     num_classes=self.num_classes),
-                                              'recall': Recall(compute_on_step=False, average='macro',
+            metrics_torch = MetricCollection({'recall': Recall(compute_on_step=False, average='macro',
                                                                num_classes=self.num_classes),
-                                              'macro-f1': F1(compute_on_step=False, average='macro',
-                                                             num_classes=self.num_classes),
+                                              'recall_micro': Recall(compute_on_step=False, average='micro',
+                                                                     num_classes=self.num_classes),
+                                              'specificity': Specificity(compute_on_step=False, average='macro',
+                                                                         num_classes=self.num_classes),
+                                              'specificity_micro': Specificity(compute_on_step=False, average='micro',
+                                                                               num_classes=self.num_classes),
                                               'mcc': MatthewsCorrcoef(compute_on_step=False,
                                                                       num_classes=self.num_classes),
                                               'cm': ConfusionMatrix(num_classes=self.num_classes)})
@@ -248,14 +250,16 @@ class ClassificationModel(torch.nn.Module):
         logging.info("Extended test ...")
         self.feature_extractor.eval()
         self.classifier.eval()
-        metrics_torch = MetricCollection({'acc': Accuracy(compute_on_step=False, num_classes=self.num_classes),
-                                          'precision': Precision(compute_on_step=False, average='macro',
-                                                                 num_classes=self.num_classes),
-                                          'recall': Recall(compute_on_step=False, average='macro',
+        metrics_torch = MetricCollection({'recall': Recall(compute_on_step=False, average='macro',
                                                            num_classes=self.num_classes),
-                                          'macro-f1': F1(compute_on_step=False, average='macro',
-                                                         num_classes=self.num_classes),
-                                          'mcc': MatthewsCorrcoef(compute_on_step=False, num_classes=self.num_classes),
+                                          'recall_micro': Recall(compute_on_step=False, average='micro',
+                                                                 num_classes=self.num_classes),
+                                          'specificity': Specificity(compute_on_step=False, average='macro',
+                                                                     num_classes=self.num_classes),
+                                          'specificity_micro': Specificity(compute_on_step=False, average='micro',
+                                                                           num_classes=self.num_classes),
+                                          'mcc': MatthewsCorrcoef(compute_on_step=False,
+                                                                  num_classes=self.num_classes),
                                           'cm': ConfusionMatrix(num_classes=self.num_classes)})
         metrics_torch.to('cpu')
         data_list = []
