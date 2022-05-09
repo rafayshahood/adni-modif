@@ -145,7 +145,6 @@ training/evaluation and load specific dataset
 - Evaluation results:
   - `CN` vs `AD` vs `BV` vs `MCI` over 3 learning trials using test sets of ADNI3, ADNI2, NIFD: 
     - MCC is 0.32+/-0.01
-    - Confusion matrix:
     ![Confusion matrix maps](./images/cm.png)
   - `CN` vs `AD` using the independent dataset AIBL: 
     - MCC is 0.58+/-0.01 
