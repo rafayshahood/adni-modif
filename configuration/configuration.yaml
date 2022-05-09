@@ -84,7 +84,7 @@ classifier:
 # Setting for the evaluation of the model on the independent datasets:
 independent_evaluation:
   seed: 1
-  checkpoint_load: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/cls_seed-52_freeze-True_conf_id-v3'
+  checkpoint_load: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/cls_seed-32_freeze-True_conf_id-v3'
   batch_size: 128
   replicas: 100  # for each sample n randomly selected slices are provided to predict a diagnosis
   replicas_extraction: 1  # extract sample's features from n random slices
@@ -101,8 +101,8 @@ independent_evaluation:
 
 # Setting for the visualisation
 visualisation:
-  backbone_checkpoint: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/nnclr_seed-52_conf_id-v3'
-  classifier_checkpoint: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/cls_seed-52_freeze-True_conf_id-v3'
+  backbone_checkpoint: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/nnclr_seed-32_conf_id-v3'
+  classifier_checkpoint: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/cls_seed-32_freeze-True_conf_id-v3'
   log_dir: '/mnt/ssd2/ClinicNET/work_dir/logs/'
 
 

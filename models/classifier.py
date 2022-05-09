@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import torch
 from numpy import ndarray
+from sklearn.metrics import balanced_accuracy_score, recall_score, classification_report, matthews_corrcoef
 from torch import nn, Tensor
 from torch.nn import Sequential
 from torch.nn import functional as F
@@ -19,6 +20,7 @@ from torchmetrics import MetricCollection, Accuracy, Precision, Recall, F1, Conf
 from configuration.configuration import Configuration
 
 LOG_IDENTIFIER_CLASSIFIER = "classification_model"
+LOG_IDENTIFIER_CLASSIFIER_EVALUATION = "classification_model_evaluation"
 LOG_IDENTIFIER_INDEPENDENT_EVALUATION = "independent_evaluation"
 
 
@@ -226,7 +228,7 @@ class ClassificationModel(torch.nn.Module):
                                                                                num_classes=self.num_classes),
                                               'mcc': MatthewsCorrcoef(compute_on_step=False,
                                                                       num_classes=self.num_classes),
-                                              'cm': ConfusionMatrix(num_classes=self.num_classes)})
+                                              'cm': ConfusionMatrix(num_classes=self.num_classes, compute_on_step=False)})
             metrics_torch.to(configuration.device)
 
             for idx, (view_one, _, target) in enumerate(test_loader):
@@ -240,6 +242,7 @@ class ClassificationModel(torch.nn.Module):
                 metrics_torch(predicted, target.int())
 
         logging.info("Test metrics: {}".format(metrics_torch.compute()))
+
 
     def test_ext(self, configuration, test_loader):
         """
@@ -260,7 +263,7 @@ class ClassificationModel(torch.nn.Module):
                                                                            num_classes=self.num_classes),
                                           'mcc': MatthewsCorrcoef(compute_on_step=False,
                                                                   num_classes=self.num_classes),
-                                          'cm': ConfusionMatrix(num_classes=self.num_classes)})
+                                          'cm': ConfusionMatrix(num_classes=self.num_classes, compute_on_step=False)})
         metrics_torch.to('cpu')
         data_list = []
         for replica in range(configuration.cls_conf.replicas):
@@ -290,6 +293,14 @@ class ClassificationModel(torch.nn.Module):
         predictions = torch.as_tensor(data_replicated[:, 0])
         targets = torch.as_tensor(data_replicated[:, -1])
         metrics_torch(predictions, targets.int())
+        balanced_acc = balanced_accuracy_score(targets.int().detach().cpu().numpy(), predictions.detach().cpu().numpy())
+        mcc = matthews_corrcoef(targets.int().detach().cpu().numpy(), predictions.detach().cpu().numpy())
+        recall = recall_score(targets.int().detach().cpu().numpy(), predictions.detach().cpu().numpy(), average='micro')
+        print(classification_report(targets.int().detach().cpu().numpy(), predictions.detach().cpu().numpy()))
+
+        logging.info("Balanced Accuracy: {}".format(balanced_acc))
+        logging.info("MCC: {}".format(mcc))
+        logging.info("Recall: {}".format(recall))
 
         logging.info("Test metrics: {}".format(metrics_torch.compute()))
 

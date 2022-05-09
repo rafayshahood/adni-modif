@@ -24,13 +24,14 @@ from data_processing.utils import FREEZE_BACKBONE, SEED, string_to_bool
 sns.set(font_scale=1.6)
 
 
-def plot_cm_mlxtend(conf_matrix, title, suffix):
-    fig, ax = plot_confusion_matrix(conf_mat=conf_matrix, figsize=(6, 6), cmap=plt.cm.Greens)
+def plot_cm_mlxtend(conf_matrix, class_names, output_folder, title="", suffix=""):
+    fig, ax = plot_confusion_matrix(conf_mat=conf_matrix, figsize=(6, 6), cmap=plt.cm.Greens, class_names=class_names)
     plt.xlabel('Predictions', fontsize=18)
     plt.ylabel('Actuals', fontsize=18)
     plt.title(title, fontsize=18)
-    plt.savefig("./images/{}.pdf".format(suffix), format="pdf")
-    plt.savefig("./images/{}.png".format(suffix), format="png")
+    plt.tight_layout()
+    plt.savefig("{}{}.pdf".format(output_folder, suffix), format="pdf")
+    plt.savefig("{}{}.png".format(output_folder, suffix), format="png")
     plt.close()
 
 
@@ -284,7 +285,7 @@ class FeatureMap:
             plt.close()
 
 
-def plot_attributions(sample, model, target, name):
+def plot_attributions(sample, model, target, name, output_folder):
     ig = IntegratedGradients(model)
     nt = NoiseTunnel(ig)
     sample = torch.unsqueeze(sample, dim=0)
@@ -295,10 +296,10 @@ def plot_attributions(sample, model, target, name):
     np_attribution = torch.unsqueeze(torch.squeeze(attributions), dim=2).detach().cpu().numpy()
     np_sample = torch.unsqueeze(torch.squeeze(sample), dim=2).detach().cpu().numpy()
     fig, ax = visualize_image_attr(np_attribution, np_sample, "blended_heat_map", alpha_overlay=0.5, show_colorbar=True,
-                                   sign="positive", use_pyplot=False)
+                                   sign="all", use_pyplot=False)
     ax.plot()
     plt.show()
-    fig.savefig("/mnt/ssd2/ClinicNET/output/{}.png".format(name), format="png")
+    fig.savefig("{}{}.png".format(output_folder, name), format="png")
 
 
 def search_for_files(search_dir: str, file_identifier: str):

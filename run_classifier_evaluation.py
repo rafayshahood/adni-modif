@@ -9,7 +9,7 @@ from configuration.configuration import Configuration
 from data_processing.data_loader import DataLoader, Mode
 from data_processing.data_reader import DataReader
 from data_processing.utils import set_seed, set_logging, SEED
-from models.classifier import ClassificationModel, LOG_IDENTIFIER_CLASSIFIER
+from models.classifier import ClassificationModel, LOG_IDENTIFIER_CLASSIFIER, LOG_IDENTIFIER_CLASSIFIER_EVALUATION
 from models.nnclr import get_convnext
 
 
@@ -54,7 +54,7 @@ def execute(conf: Configuration, ckpt_folder: str):
 
 
 configuration = Configuration(mode=Mode.classifier)  # Load a configuration file
-set_logging(log_dir=configuration.logs_folder, suffix=LOG_IDENTIFIER_CLASSIFIER)  # logging
+set_logging(log_dir=configuration.logs_folder, suffix=LOG_IDENTIFIER_CLASSIFIER_EVALUATION)  # logging
 
 for seed in configuration.seeds:
     logging.info("Evaluating classifier with a frozen backbone")
