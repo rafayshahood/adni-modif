@@ -76,9 +76,6 @@ training/evaluation and load specific dataset
 - NNCLR training: `ADNI3`, `ADNI2`, `NIFD`
 - Classifier training: `ADNI3`, `ADNI2`, `NIFD`
 - Training trials: 3 (each trial new train and test sets are created that are the same for NNCLR and classifier models)
-- Training samples (NNCLR): 4300
-- Training samples (Classifier): 4300
-- Test samples (Classifier): 477
 - Independent evaluation: `AIBL`
 - Sample statistics of ADNI3 (N=2365, Patients=844):
 
