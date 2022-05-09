@@ -78,7 +78,7 @@ training/evaluation and load specific dataset
 - Training trials: 3 (each trial new train and test sets are created that are the same for NNCLR and classifier models)
 - Training samples (NNCLR): 4300
 - Training samples (Classifier): 4300
-- Test samples (Classifier): TODO
+- Test samples (Classifier): 477
 - Independent evaluation: `AIBL`
 - Sample statistics of ADNI3 (N=2365, Patients=844):
 
@@ -130,7 +130,7 @@ training/evaluation and load specific dataset
 
 - Training of a classifier:
   - ConvNeXt Tiny CNN model serves as a feature extractor and is not trained
-  - 1,000 epochs
+  - 100 epochs
   - a batch size of 64
   - features dimension from ConvNeXt Tiny CNN model: 768
   - classifier block that is trained: normalisation layer, flat operation, linear layer
@@ -146,12 +146,12 @@ training/evaluation and load specific dataset
 ![ig positive](./images/attributions_ig_positive_AD.gif) |  ![ig negative](./images/attributions_ig_negative_AD.gif)
 
 - Evaluation results:
-  - `CN` vs `AD` vs `BV` vs `MCI` over 3 learning trials using test sets of ADNI3, ADNI2, AIBL, NIFD: 
-    - MCC is 0.42+/-0.005; Recall is 0.69+/-0.004; Precision is 0.56+/-0.006
+  - `CN` vs `AD` vs `BV` vs `MCI` over 3 learning trials using test sets of ADNI3, ADNI2, NIFD: 
+    - MCC is 0.32+/-0.01
     - Confusion matrix:
     ![Confusion matrix maps](./images/cm.png)
-  - `CN` vs `AD` vs `MCI` using the independent dataset AIBL: 
-    - MCC is ; Recall is ; Precision is 
+  - `CN` vs `AD` using the independent dataset AIBL: 
+    - MCC is 0.58+/-0.01 
     
 ## References:
 [1] Dwibedi, D., Aytar, Y., Tompson, J., Sermanet, P., & Zisserman, A. (2021).
