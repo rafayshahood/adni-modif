@@ -1,13 +1,17 @@
 # General settings
-seed: 32
+working_dir : "/mnt/ssd2/ClinicNET/work_dir/"
+id: v3  #  configuration version
+seeds:
+  - 32
+  - 42
+  - 52
 dry_run: False  # used for testing purposes; if True, then only one training iteration is performed
 
 # Data settings:
 data:
-  slices_range: 120
-  features_out: '/mnt/ssd2/ClinicNET/features/nifd_adni_aibl'
-  quality_check: True
-  col_names:  # the only columns that will be considered when reading clinical/file data
+  slices_range: 120  # if m is the middle slice of the coronal plane, then the slices in rage [m-slices_range/2; m+slices_range/2] are the candidates for selection
+  quality_check: True  # if True, then samples will be filtered based on MMSE values
+  col_names: # the only columns that will be considered when reading clinical/tabular data
     - participant_id
     - session_id
     - diagnosis
@@ -33,82 +37,72 @@ data:
       - LMCI
       - EMCI
       - SMC
-      - AD Dementia
-      - Cognitively normal
-      - PPMI # a dummy label for PPMI dataset (data with this label will not be used for linear evaluation)
-    control_labels:
+    control_labels: # will be encoded as 'CN'
       - CON
       - CN
-      - Cognitively normal
     ftd_labels:
       - BV
       - SV
       - PNFA
     merge_ftd: False  # will be encoded as 'FTD'
-    ad_labels:  # will be encoded as 'AD'
-      - AD Dementia
+    ad_labels: # will be encoded as 'AD'
       - AD
 
 
 # NNCLR settings:
 nnclr:
-  checkpoint: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/'
-  checkpoint_resume: ''
-  epochs: 2000
-  save_nepoch: 100  # a model will be saved every nth epoch
-  batch_size: 150
-  trainable_layers: 0  # only the last n nn.Sequential blocks and other layers afterwards will be trained
-  data:
-    # A list of the paths to the CAPS directories:
-    - caps_directories:
-      - '/mnt/ssd2/ClinicNET/data/nifd/CAPS/'
-      - '/mnt/ssd2/ClinicNET/data/adni3/CAPS/'
-      - '/mnt/ssd2/ClinicNET/data/adni2/CAPS/'
-      - '/mnt/ssd2/ClinicNET/data/aibl/CAPS/'
-
-    # A list of the paths to the TSV files containing targets/labels:
-    - info_data_files:
-      - '/mnt/ssd2/ClinicNET/data/nifd/info_data.tsv'
-      - '/mnt/ssd2/ClinicNET/data/adni3/info_data.tsv'
-      - '/mnt/ssd2/ClinicNET/data/adni2/info_data.tsv'
-      - '/mnt/ssd2/ClinicNET/data/aibl/info_data.tsv'
-
-
-# Setting for the linear evaluation of the NNCLR model:
-linear_eval:
-  checkpoint_load: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed32/one_slice_nnclr_epoch_2000.ckpt'
-  checkpoint_save: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed32/one_slice_le.ckpt'
+  checkpoint_resume: ''  # if provided a model will be loaded and trained further. The same model is used for all seeds!
   epochs: 1000
-  batch_size: 32
-  replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis
-  replicas_extraction: 1  # extract # replicas_extraction random slices from each sample
-  eval_labels:
-    - CN
-    - AD
-    - BV
-    - MCI
-
-# Setting for the linear evaluation of the NNCLR model on the independent datasets:
-independent_linear_eval:
-  checkpoint_load: '/mnt/ssd2/ClinicNET/checkpoints/convnext_tiny_fine_tuned/seed32/seven_slices_le.ckpt'
-  batch_size: 128
-  replicas: 100  # for each sample # replicas random slices are provided to predict a diagnosis
-  replicas_extraction: 1  # extract # replicas_extraction random slices from each sample
+  save_nepoch: 10  # a model will be saved every nth epoch
+  batch_size: 180
+  trainable_layers: 0  # only the last n nn.Sequential blocks and other layers afterwards will be trained (0 means that all layers will be trained)
   data:
     # A list of the paths to the CAPS directories:
     - caps_directories:
-      - '/mnt/ssd2/ClinicNET/data/oasis/CAPS/'
+        - '/mnt/ssd2/ClinicNET/data/nifd/CAPS/'
+        - '/mnt/ssd2/ClinicNET/data/adni3/CAPS/'
+        - '/mnt/ssd2/ClinicNET/data/adni2/CAPS/'
+
     # A list of the paths to the TSV files containing targets/labels:
     - info_data_files:
-      - '/mnt/ssd2/ClinicNET/data/oasis/info_data.tsv'
+        - '/mnt/ssd2/ClinicNET/data/nifd/info_data.tsv'
+        - '/mnt/ssd2/ClinicNET/data/adni3/info_data.tsv'
+        - '/mnt/ssd2/ClinicNET/data/adni2/info_data.tsv'
+
+
+# Setting for the classifier:
+classifier:
+  epochs: 100
+  batch_size: 64
+  replicas: 100  # for each sample n randomly selected slices are provided to predict a diagnosis
+  replicas_extraction: 1  # extract sample's features from n random slices
+  comparison: True  # If True, then a second model will be trained without freezing the backbone. Otherwise, only a classification block on top of the frozen backbone will be trained
+  eval_labels:  # only samples with these labels will be selected
+    - CN
+    - AD
+
+# Setting for the evaluation of the model on the independent datasets:
+independent_evaluation:
+  seed: 1
+  checkpoint_load: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/cls_seed-32_freeze-True_conf_id-v3'
+  batch_size: 128
+  replicas: 100  # for each sample n randomly selected slices are provided to predict a diagnosis
+  replicas_extraction: 1  # extract sample's features from n random slices
+  data:
+    # A list of the paths to the CAPS directories:
+    - caps_directories:
+        - '/mnt/ssd2/ClinicNET/data/aibl/CAPS/'
+    # A list of the paths to the TSV files containing targets/labels:
+    - info_data_files:
+        - '/mnt/ssd2/ClinicNET/data/aibl/info_data.tsv'
   eval_labels:
     - CN
     - AD
 
+# Setting for the visualisation
+visualisation:
+  backbone_checkpoint: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/nnclr_seed-32_conf_id-v3'
+  classifier_checkpoint: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/cls_seed-32_freeze-True_conf_id-v3'
+  log_dir: '/mnt/ssd2/ClinicNET/work_dir/logs/'
 
-# LRP settings:
-lrp:
-  is_train_set: False  # if True, then a train set will be used
-  checkpoint: ''
-  batch_size: 256
-  classes: 2
+

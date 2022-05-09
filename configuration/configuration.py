@@ -1,124 +1,124 @@
-import random
-
-import numpy as np
 import torch
 import yaml
-from torch.backends import cudnn
 
-from data_processing.utils import Mode
+from data_processing.utils import Mode, create_folder
 
 
 class NNCLRConfiguration:
     """
     Configuration for the NNCLR model
     """
-    def __init__(self, settings: dict) -> None:
+
+    def __init__(self, settings: dict, ckpt_dir: str) -> None:
+        """
+        Initialises with all required parameters
+        :param settings: settings as dict object
+        :param ckpt_dir: checkpoint directory
+        """
         self.epochs = settings['epochs']
         self.batch_size = settings['batch_size']
-        self.checkpoint = settings['checkpoint']
+        self.checkpoint_folder = ckpt_dir
         self.checkpoint_resume = settings['checkpoint_resume']
         self.save_nepoch = settings['save_nepoch']
         self.trainable_layers = settings['trainable_layers']
 
 
-class LinearEvaluationConfiguration:
+class ClassifierConfiguration:
     """
-    Configuration for the linear evaluation of the NNCLR model
+    Configuration for the classifier
     """
-    def __init__(self, settings: dict):
+
+    def __init__(self, settings: dict, ckpt_dir: str):
+        """
+        Initialises with all required parameters
+        :param settings: settings as dict object
+        :param ckpt_dir: checkpoint directory
+        """
         self.epochs = settings['epochs']
         self.batch_size = settings['batch_size']
-        self.checkpoint_load = settings['checkpoint_load']
-        self.checkpoint_save = settings['checkpoint_save']
+        self.checkpoint_folder_save = ckpt_dir
         self.replicas = settings['replicas']
         self.replicas_extraction = settings['replicas_extraction']
         self.eval_labels = settings['eval_labels']
+        self.comparison = settings['comparison']
 
 
-class IndependentLinearEvaluationConfiguration:
+class IndependentEvaluationConfiguration:
     """
-    Configuration for the independent linear evaluation of the NNCLR model
+    Configuration for the independent evaluation of the model
     """
+
     def __init__(self, settings: dict):
+        """
+        Initialises with all required parameters
+        :param settings: settings as dict object
+        """
+        self.seed = settings['seed']
         self.batch_size = settings['batch_size']
         self.checkpoint_load = settings['checkpoint_load']
         self.replicas = settings['replicas']
         self.replicas_extraction = settings['replicas_extraction']
         self.eval_labels = settings['eval_labels']
-
-
-class LRPConfiguration:
-    """
-    Configuration for LRP
-    """
-    def __init__(self, settings: dict):
-        self.batch_size = settings['batch_size']
-        self.checkpoint = settings['checkpoint']
-        self.is_train_set = settings['is_train_set']
-        self.classes = settings['classes']
 
 
 class Configuration:
     """
     Configuration for all components
     """
-    def __init__(self, mode):
+
+    def __init__(self, mode: Mode):
+        """
+        Initialises with all required parameters
+        :param mode: Mode, e.g. for the training of the NNCLR/classifier or independent evaluation
+        """
         with open('./configuration/configuration.yaml', 'r') as stream:
-            settings = yaml.load(stream, yaml.Loader)
+            self.settings = yaml.load(stream, yaml.Loader)
 
             # --- general ---
-            self.seed = settings['seed']
-            self.dry_run = settings['dry_run']
+            self.work_dir = self.settings['working_dir']
+            self.id = self.settings['id']
+            self.seeds = self.settings['seeds']
+            self.dry_run = self.settings['dry_run']
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
+            self.checkpoints_folder = create_folder(self.work_dir, "checkpoints/")
+            self.logs_folder = create_folder(self.work_dir, "logs/")
+            self.features_folder = create_folder(self.work_dir, "features/")
+
             # --- data ---
-            data = self.get_data(settings, mode)
+            data = self.get_data(mode)
             self.caps_directories = data[0]['caps_directories']
             self.info_data_files = data[1]['info_data_files']
 
-            data = settings['data']
+            data = self.settings['data']
             self.slices_range = data['slices_range']
-            self.features_out = data['features_out']
             self.diagnoses_info = data['diagnoses_info']
             self.quality_check = data['quality_check']
             self.valid_dataset_names = data['valid_dataset_names']
             self.col_names = data['col_names']
 
             # --- NNCLR ---
-            self.nnclr_conf = NNCLRConfiguration(settings['nnclr'])
+            self.nnclr_conf = NNCLRConfiguration(self.settings['nnclr'], ckpt_dir=self.checkpoints_folder)
 
             # --- Linear evaluation ---
-            self.le_conf = LinearEvaluationConfiguration(settings['linear_eval'])
+            self.cls_conf = ClassifierConfiguration(self.settings['classifier'], ckpt_dir=self.checkpoints_folder)
 
             # --- Independent linear evaluation ---
-            self.ind_le_conf = IndependentLinearEvaluationConfiguration(settings['independent_linear_eval'])
+            self.ind_eval_conf = IndependentEvaluationConfiguration(self.settings['independent_evaluation'])
 
-            # --- LRP ---
-            self.lrp_conf = LRPConfiguration(settings['lrp'])
-
-    def set_seeds(self, seed: int = None) -> None:
+    def get_data(self, mode):
         """
-        Set seed to assure the reproducibility of results
-        :param seed: a seed as int
+        Returns the appropriate data configuration based on the selected settings
+        :param mode: Mode object, e.g. for the training of the NNCLR/classifier or independent evaluation
+        :return: data configuration
         """
-        new_seed = self.seed if seed is None else seed
-        random.seed(new_seed)
-        np.random.seed(new_seed)
-        torch.manual_seed(new_seed)
-        cudnn.deterministic = True
-
-    @staticmethod
-    def get_data(settings, mode):
         if mode == Mode.training:
-            data = settings['nnclr']['data']
-        elif mode == Mode.evaluation:
-            data = settings['nnclr']['data']
+            data = self.settings['nnclr']['data']
+        elif mode == Mode.classifier:
+            data = self.settings['nnclr']['data']
         elif mode == Mode.independent_evaluation:
-            data = settings['independent_linear_eval']['data']
+            data = self.settings['independent_evaluation']['data']
         else:
             raise ValueError("Mode {} is not recognized".format(mode))
 
         return data
-
-
-

@@ -8,46 +8,45 @@ from torch.utils import data as torch_data
 from torch.utils.data import Subset
 
 from configuration.configuration import Configuration
-from data_processing.data_provider import DataProviderSSL
+from data_processing.data_provider import DataProvider
 from data_processing.data_reader import DataReader
 from data_processing.utils import Mode
 
 
-class DataLoaderSSL:
+class DataLoader:
     """
-    Creates the train and test/evaluation loaders
+    Creates train and test/evaluation loaders
     """
 
     def __init__(self, configuration: Configuration, data: DataReader, mode: Mode) -> None:
         """
-        Initialize with all required attributes.
-        :type configuration: Configuration
-        :type data: DataReader
+        Initialises with all required attributes.
+        :type configuration: Configuration object
+        :type data: DataReader object
         :type mode: Mode object
         """
         self.configuration = configuration
         self.data = data
         self.mode = mode
 
-        # Values will be filled during execution:
+        # Values will be filled during the execution:
         self.batch_size = None
-        self.mode = None
         self.classes = None
         self.train_loader, self.eval_loader = None, None
         self.class_weights = None
 
     def filter_data(self, dataset: Subset, diagnoses: list) -> Subset:
         """
-        Selects only data that are relevant for evaluation
+        Selects only data that are relevant for evaluation/test
         :param dataset: A dataset (Subset) with indices
         :param diagnoses: A list of diagnoses
         :return: A dataset (Subset) with indices that correspond to relevant diagnoses
         """
 
         if Mode.independent_evaluation == self.mode:
-            eval_labels = self.configuration.ind_le_conf.eval_labels
+            eval_labels = self.configuration.ind_eval_conf.eval_labels
         else:
-            eval_labels = self.configuration.le_conf.eval_labels
+            eval_labels = self.configuration.cls_conf.eval_labels
 
         indices = [index for index, element in enumerate(dataset.dataset.diagnoses) if
                    element in eval_labels]
@@ -67,22 +66,24 @@ class DataLoaderSSL:
 
         return dataset
 
-    def split_data(self, targets, diagnoses) -> Tuple[Subset, Subset]:
+    def split_data(self, targets: list, diagnoses: list, test_size: float = 0.4) -> Tuple[Subset, Subset]:
         """
-        Split data into training and evaluation sets
+        Splits data into train and evaluation sets
         :param targets: Targets/Labels/Diagnoses as int values
         :param diagnoses: Diagnoses as str values
+        :param test_size: the proportion of samples that should be in a test set
         :return: training and evaluation sets
         """
-
-        # Assure that the split is always the same
-        self.configuration.set_seeds(145794547)
 
         patients = self.data.data['patient'].tolist()  # A list of patient IDs
 
         # Get indices of training and evaluation sets:
-        train_pt_indices, eval_pt_indices = train_test_split(list(range(len(patients))), test_size=0.5,
-                                                             stratify=targets)
+        if test_size == 0.0:
+            train_pt_indices = list(range(len(patients)))
+            eval_pt_indices = []
+        else:
+            train_pt_indices, eval_pt_indices = train_test_split(list(range(len(patients))), test_size=test_size,
+                                                                 stratify=targets)
 
         # Samples from multiple sessions of one patient should appear only in one set: either training or evaluation:
         train_pt = []
@@ -106,46 +107,42 @@ class DataLoaderSSL:
                 train_idx.append(eval_idx_copy[idx])
         assert len(set(train_idx).intersection(set(eval_idx))) == 0
 
-        logging.info("Number of samples in training set: {}".format(len(train_idx)))
+        logging.info("Number of samples: {}".format(len(train_idx)))
         values = [diagnoses[i] for i in train_idx]
         logging.info("Counts: {}".format(dict(zip(list(values), [list(values).count(i) for i in list(values)]))))
 
-        if self.mode == Mode.evaluation:
+        if self.mode == Mode.classifier:
             logging.info("Number of samples in evaluation set: {}".format(len(eval_idx)))
             values = [diagnoses[i] for i in eval_idx]
             logging.info("Counts: {}".format(dict(zip(list(values), [list(values).count(i) for i in list(values)]))))
 
         # Create a dataset for accessing samples:
-        dataset = DataProviderSSL(self.data.data['file'].tolist(), targets, diagnoses,
-                                  self.configuration.slices_range, self.mode)
+        dataset = DataProvider(self.data.data['file'].tolist(), targets, diagnoses,
+                               self.configuration.slices_range, self.mode)
 
         train_dataset = torch_data.Subset(dataset, train_idx)
         eval_dataset = torch_data.Subset(dataset, eval_idx)
-
-        # Restore original seeds:
-        self.configuration.set_seeds()
-
+        logging.info("IDs: {}".format(eval_idx))
         return train_dataset, eval_dataset
 
-    def create_data_loader(self) -> None:
+    def create_data_loader(self, shuffle: bool = True) -> None:
         """
-        Create data loader.
+        Creates data loader.
+        :type shuffle: if True, then eval loader will shuffle data samples before sampling, otherwise not
         """
-        if self.mode == Mode.independent_evaluation:
-            # Create a dataset for accessing samples:
-            eval_dataset = DataProviderSSL(self.data.data['file'].tolist(), self.data.data['target'].tolist(),
-                                           self.data.data['diagnosis'].tolist(),
-                                           self.configuration.slices_range, self.mode)
-            self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=False,
-                                                     num_workers=8)
 
+        train_dataset, eval_dataset = self.split_data(self.data.data['target'].tolist(),
+                                                      self.data.data['diagnosis'].tolist(),
+                                                      test_size=0.0 if self.mode == Mode.independent_evaluation else 0.4)
+
+        if self.mode == Mode.independent_evaluation:
+            dataset = self.filter_data(train_dataset, self.data.data['diagnosis'].tolist())
+            self.eval_loader = torch_data.DataLoader(dataset, batch_size=self.batch_size, shuffle=shuffle,
+                                                     num_workers=8)
             self.train_loader = None
             return
 
-        train_dataset, eval_dataset = self.split_data(self.data.data['target'].tolist(),
-                                                      self.data.data['diagnosis'].tolist())
-
-        if self.mode == Mode.evaluation:
+        if self.mode == Mode.classifier:
             # During evaluation another set of targets can be used:
             train_dataset = self.filter_data(train_dataset, self.data.data['diagnosis'].tolist())
             eval_dataset = self.filter_data(eval_dataset, self.data.data['diagnosis'].tolist())
@@ -158,9 +155,11 @@ class DataLoaderSSL:
             # Get the number of classes:
             self.classes = len(set([train_dataset.dataset.targets[i] for i in train_dataset.indices]))
             logging.info("# classes: {}".format(self.classes))
+            logging.info("Class weights: {}".format(self.class_weights))
 
         # Finally create data loaders that will be used during training/evaluation/feature extraction:
         self.train_loader = torch_data.DataLoader(train_dataset,
                                                   batch_size=self.batch_size,
                                                   shuffle=True, num_workers=8)
-        self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=False, num_workers=8)
+        self.eval_loader = torch_data.DataLoader(eval_dataset, batch_size=self.batch_size, shuffle=shuffle,
+                                                 num_workers=8)

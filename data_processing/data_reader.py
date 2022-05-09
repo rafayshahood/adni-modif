@@ -18,7 +18,10 @@ class DataReader:
         Initialize with all required attributes.
         :param caps_directories: CAPS directory produced by the clinica library
         :param info_data: tabular data containing information about patients and their diagnosis
+        :param diagnoses_info: dict about existing and valid diagnoses/labels
         :param quality_check: if True then samples will filtered based on MMSE values
+        :param valid_dataset_names: valid names of the datasets
+        :param info_data_cols: columns of the info data that will be considered
         """
         self.columns = info_data_cols
         self.valid_dataset_names = valid_dataset_names
@@ -29,7 +32,7 @@ class DataReader:
     @staticmethod
     def search_files(caps_directories: List[str]) -> pd.DataFrame:
         """
-        Search for all PyTorch tensors containing information about an MRI scan.
+        Searches for all PyTorch tensors containing information about an MRI scan.
         :param caps_directories: a list of the paths to the CAPS directories.
         :return: the pandas data frame containing the ID of a patient, the ID of a session, and the path to a PyTorch.
         tensor.
@@ -65,6 +68,10 @@ class DataReader:
 
     @staticmethod
     def calculate_statistics(data: pd.DataFrame) -> None:
+        """
+        Logs some statistics, e.g. age, MMSE, unique patients
+        :param data: info data as DataFrame
+        """
         for dataset in data["dataset"].unique():
             logging.info("Calculating statistics for {} ...".format(dataset))
             data_ = data[data["dataset"] == dataset].copy()
@@ -90,9 +97,9 @@ class DataReader:
     @staticmethod
     def _apply_filter(data: pd.DataFrame) -> pd.DataFrame:
         """
-        Removes samples that are above/below of 1 SD of the mean of MMSE.
-        :param data: pd.DataFrame
-        :return: filtered pd.DataFrame
+        Removes samples that are 1 SD above/below of the MMSE's mean.
+        :param data: info data as DataFrame
+        :return: filtered DataFrame
         """
         data["mean"] = data[["diagnosis", "mmse"]].groupby('diagnosis').transform("mean")
         data["std"] = data[["diagnosis", "mmse"]].groupby('diagnosis').transform("std")
@@ -138,9 +145,8 @@ class DataReader:
     def select_columns(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Selects only specific columns.
-        :param data: pd.DataFrame
-        :param columns: a list of columns
-        :return: pd.DataFrame
+        :param data: DataFrame object
+        :return: filtered DataFrame object
         """
         for col in self.columns:
             if col not in data.columns:
@@ -151,8 +157,8 @@ class DataReader:
     def filter_on_quality(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Filters samples based on MMSE values.
-        :param data: pd.DataFrame
-        :return: filtered pd.DataFrame
+        :param data: DataFrame object
+        :return: filtered DataFrame object
         """
 
         if 'MMS' in data.columns:
@@ -170,7 +176,7 @@ class DataReader:
 
     def read_info_data(self, info_data_list: List[str]) -> pd.DataFrame:
         """
-        Read the information about available MRI scans in the TSV files.
+        Reads the information about available MRI scans in the TSV files.
         :param info_data_list: a list of the paths to the TSV files containing targets/labels.
         :return: the pandas data frame containing the ID of a patient, the ID of a session, and the corresponding
         target/label.
@@ -199,7 +205,7 @@ class DataReader:
 
     def get_files_and_labels(self, caps_directories: List[str], info_data: List[str]) -> pd.DataFrame:
         """
-        Search for PyTorch tensors in the CAPS directories and for the corresponding targets/labels in TSV files.
+        Searches for PyTorch tensors in the CAPS directories and for the corresponding targets/labels in TSV files.
         :param caps_directories: a list of the paths to the CAPS directories.
         :param info_data: a list of the paths to the TSV files containing targets/labels.
         """

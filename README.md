@@ -1,7 +1,7 @@
 # Clinic-NET
 
 Explainable Differential Diagnosis of Dementia using Self-supervised Learning.
-The proposed method is based on Nearest-Neighbor Contrastive Learning of Visual
+The proposed method is based on Nearest-Neighbour Contrastive Learning of Visual
 Representations (NNCLR) [1] using ConvNeXt Tiny [2] with 7x7 filter kernels.
 
 The following image visualizes the whole architecture:
@@ -9,11 +9,15 @@ The following image visualizes the whole architecture:
 ![Architecture](./images/architecture.png)
 
 ## Repository structure:
-- `data` folder is used to store or reference data
 - `configuration` folder contains the YAML file for the configuration
 - `data_processing` folder contains the methods that are used to prepare data for a model
 - `models` folder defines a model structure
-- Output will be saved into the folder `output`
+- `run_train_nnclr.py` trains the NNCLR model
+- `run_train-classifier.py` trains the classification model
+- `run_classifier_indep_eval.py` evaluates the whole model on independent data
+- `run_classifier_evaluation.py` evaluates the whole model on the validation/test set
+- `run_visual` creates figures
+- All output information will be saved into the working folder (see `configuration.yaml`)
 
 ## Datasets are accessible through http://adni.loni.usc.edu/, if not otherwise stated:
 - (in use) ADNI. Alzheimer's Disease Neuroimaging Initiatve
@@ -29,10 +33,10 @@ The following image visualizes the whole architecture:
 
 See also /data_dzne_archiv2/Studien/ClinicNET/data/
 
-## Set-up Instructions:
+## Set-up Instructions & data preparations:
 - `sudo apt-get install dcm2niix`
 - install ANTs: https://github.com/ANTsX/ANTs/wiki/Compiling-ANTs-on-Linux-and-Mac-OS
-- `pip3 install lightly openpyxl plotly mlxtend zennit nibabel torch_tb_profiler`
+- `pip3 install captum lightly openpyxl plotly mlxtend zennit nibabel torch_tb_profiler`
 - `git clone https://github.com/VadymV/clinica` and `git clone https://github.com/VadymV/clinicadl.git`
 - `pip install ./clinica ./clinicadl`
 - `conda install tsnecuda -c conda-forge`
@@ -40,9 +44,9 @@ See also /data_dzne_archiv2/Studien/ClinicNET/data/
 /data/dataset_name/data/folder_with_extracted_data (e.g. /data/nifd/data/NIFD). 
 Also download clinical data and place it into the clinical_data folder (e.g. /data/nifd/clinical_data). 
 Of course, a symbolic link can be used instead of using the dataset directory directly (e.g. `ln -s source link`)
-- folow the instructions on https://aramislab.paris.inria.fr/clinica/docs/public/latest/
+- follow the instructions on https://aramislab.paris.inria.fr/clinica/docs/public/latest/
 how to use dataset converters: e.g. 
-`clinica convert nifd-to-bids [OPTIONS] DATASET_DIRECTORY CLINICAL_DATA_DIRECTORY BIDS_DIRECTORY`
+`clinica convert nifd-to-bids [OPTIONS] DATASET_DIRECTORY CLINICAL_DATA_DIRECTORY BIDS_DIRECTORY`.
 - run `clinica run t1-linear [OPTIONS] BIDS_DIRECTORY CAPS_DIRECTORY`
 See also https://aramislab.paris.inria.fr/clinica/docs/public/latest/Pipelines/T1_Linear/
 for more details
@@ -56,11 +60,8 @@ for more details
 labels)
 - Configurations are defined in the `configuration/configuration.yaml` file:
   - Block `data` contains settings on how to select slices and what labels to consider
-  - `nnclr`, `linear_eval`, and `independent_linear_eval` blocks are used to set parameters for 
+  - `nnclr`, `classifier`, and `independent_evaluation` blocks are used to set parameters for 
 training/evaluation and load specific dataset
-- Use `train_nnclr.py` to train the NNCLR model
-- Use `train_linear_evaluation.py` to train a linear layer on top of the NNCLR model
-- Use `eval_nnclr.py` to evaluate the whole model
 - Do you want to use your own dataset? Extend the code in `clinica` and `clinicadl` libraries:
   1. Conversion to BIDS: see `clinica/clinica/iotools/converters` to imitate the same structure
   2. T1-pipeline: see `clinica/clinica/pipelines/t1_linear` if in some places additional references
@@ -69,11 +70,99 @@ training/evaluation and load specific dataset
   are needed, however the pipeline should not depend on additional information
 
 
-## PPMI dataset
-- Download imaging data through adni website. The process is similar to available datasets.
-When the imaging data are added to collection, download the collection metadata in tabular form
-(see instructions for the NIFD dataset)
 
+
+## Current state and results
+- NNCLR training: `ADNI3`, `ADNI2`, `NIFD`
+- Classifier training: `ADNI3`, `ADNI2`, `NIFD`
+- Training trials: 3 (each trial new train and test sets are created that are the same for NNCLR and classifier models)
+- Training samples (NNCLR): 4300
+- Training samples (Classifier): 4300
+- Test samples (Classifier): TODO
+- Independent evaluation: `AIBL`
+- Sample statistics of ADNI3 (N=2365, Patients=844):
+
+|           |  CN       | AD         |  MCI        |
+|-----------|-----------|------------|-------------|
+| Age       |73.99(7)   |76.96(8.31) |74.57(7.97)  |   
+| MMSE      |29.38(0.73)|20.84(4.50) |27.85(1.10)  |
+| Sex: F/M  |312/221    |52/70       |140/173      |
+
+- Sample statistics of ADNI2 (N=1836, Patients=743):
+
+|           |  CN       | AD         |  MCI        |
+|-----------|-----------|------------|-------------|
+| Age       |75.75(7.02)|76.22(7.63) |74.57(7.86)  |   
+| MMSE      |29.31(0.74)|21.07(4.29) |27.75(1.12)  |
+| Sex: F/M  |110/94     |120/163     |151/203      |
+
+- Sample statistics of AIBL (N=991, Patients=583):
+
+|           |  CN       | AD         |  MCI        |
+|-----------|-----------|------------|-------------|
+| Age       |73.51(6.41)|75.39(7.86) |76.62(6.52)  |   
+| MMSE      |29.20(0.77)|19.45(5.57) |27.17(1.25)  |
+| Sex: F/M  |239/182    |51/37       |41/62        |
+
+- Sample statistics of NIFD (N=614, Patients=273):
+
+|           |  CN       | BV         |  SV         |  PNFA       |
+|-----------|-----------|------------|-------------|-------------|
+| Age       |64.29(7.05)|62.09(5.82) |62.72(6.80)  |68.94(7.72)  | 
+| MMSE      |29.68(0.47)|22.56(6.22) |22.48(5.74)  |24.92(5.50)  |
+| Sex: F/M  |72/58      |23/48       |14/23        |19/16
+
+- Sample statistics of OASIS: N=2012, Patients=1079:
+- Sample statistics of OASIS: N=1411, Patients=835:
+
+- NNCLR training:
+  - 1,000 epochs
+  - a batch size of 180
+  - nearest neighbour size: 8192
+  - ConvNeXt Tiny CNN model with 7x7 filter kernel
+  - data preparation for each sample:
+    - a random slice across coronal plane within the middle region of the brain is selected
+  - random transformations `t` are applied sequentially with `p(t)=0.5` to get 2 views of the same sample:
+    - resized crop
+    - erasing
+    - horizontal flip
+
+
+- Training of a classifier:
+  - ConvNeXt Tiny CNN model serves as a feature extractor and is not trained
+  - 1,000 epochs
+  - a batch size of 64
+  - features dimension from ConvNeXt Tiny CNN model: 768
+  - classifier block that is trained: normalisation layer, flat operation, linear layer
+
+- Feature maps of 22 convolutional layers (subject ADNI002S0729 diagnosed with AD, session M60):
+![Feature maps](./images/feature_maps.gif)
+
+- t-SNE visualisation of features learned by NNCLR (train set):
+![tSNE maps](./images/tsne_2D.png)
+
+- Attributions created using Integrated Gradients of a patient diagnosed with Alzheimer's Disease: green (positive atttributions), red (negative attributions)
+
+![ig positive](./images/attributions_ig_positive_AD.gif) |  ![ig negative](./images/attributions_ig_negative_AD.gif)
+
+- Evaluation results:
+  - `CN` vs `AD` vs `BV` vs `MCI` over 3 learning trials using test sets of ADNI3, ADNI2, AIBL, NIFD: 
+    - MCC is 0.42+/-0.005; Recall is 0.69+/-0.004; Precision is 0.56+/-0.006
+    - Confusion matrix:
+    ![Confusion matrix maps](./images/cm.png)
+  - `CN` vs `AD` vs `MCI` using the independent dataset AIBL: 
+    - MCC is ; Recall is ; Precision is 
+    
+## References:
+[1] Dwibedi, D., Aytar, Y., Tompson, J., Sermanet, P., & Zisserman, A. (2021).
+With a Little Help From My Friends: Nearest-Neighbor Contrastive Learning of Visual Representations.
+<em> In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)</em>, 9588-9597.
+
+[2] Liu, Z., Mao, H., Wu, C.Y., Feichtenhofer, C., Darrell, T., & Xie, S.. (2022). A ConvNet for the 2020s. 
+
+
+
+------------------------------------------------------------------------------------------------------------------------
 ## Additional info and known issues
 - delete files: `find . -name '*pattern*' -exec rm {} \;`
 - unzip files: `unzip "file_name*.zip" -d output_dir/`
@@ -121,91 +210,3 @@ appropriate places:
                 )
 </pre>
 
-
-## Current state and results
-- NNCLR training: `ADNI3`, `ADNI2`, `NIFD`, `AIBL`
-- Independent evaluation: `OASIS`
-- Sample statistics of ADNI3 (N=2368, Patients=847):
-
-|           |  CN       | AD         |  MCI        |
-|-----------|-----------|------------|-------------|
-| Age       |73.99(7)   |76.96(8.31) |74.57(7.97)  |   
-| MMSE      |29.38(0.73)|20.84(4.50) |27.85(1.10)  |
-| Sex: F/M  |313/221    |52/70       |140/175      |
-
-- Sample statistics of ADNI2 (N=1836, Patients=743):
-
-|           |  CN       | AD         |  MCI        |
-|-----------|-----------|------------|-------------|
-| Age       |75.75(7.02)|76.22(7.63) |74.57(7.86)  |   
-| MMSE      |29.31(0.74)|21.07(4.29) |27.75(1.12)  |
-| Sex: F/M  |110/94     |120/163     |151/203      |
-
-- Sample statistics of AIBL (N=991, Patients=583):
-
-|           |  CN       | AD         |  MCI        |
-|-----------|-----------|------------|-------------|
-| Age       |73.51(6.41)|75.39(7.86) |76.62(6.52)  |   
-| MMSE      |29.20(0.77)|19.45(5.57) |27.17(1.25)  |
-| Sex: F/M  |239/182    |51/37       |41/62        |
-
-- Sample statistics of OASIS (N=2012, Patients=1079):
-
-|           |  CN       | AD         |
-|-----------|-----------|------------|
-| Age       |66.74(9.52)|69.20(9.29) |   
-| MMSE      |28.89(0.89)|28.97(0.25) |
-| Sex: F/M  |517/413    |172/136     |
-
-- Sample statistics of NIFD (N=614, Patients=273):
-
-|           |  CN       | BV         |  SV         |  PNFA       |
-|-----------|-----------|------------|-------------|-------------|
-| Age       |64.29(7.05)|62.09(5.82) |62.72(6.80)  |68.94(7.72)  | 
-| MMSE      |29.68(0.47)|22.56(6.22) |22.48(5.74)  |24.92(5.50)  |
-| Sex: F/M  |72/58      |23/48       |14/23        |19/16
-
-- NNCLR training:
-  - training sets of ADNI3, ADNI2, AIBL, NIFD
-  - 1,000 epochs
-  - a batch size of 128
-  - nearest neighbour size: 8192
-  - ConvNeXt Tiny CNN model with 7x7 filter kernel
-  - data preparation for each sample:
-    - a random slice across coronal plane within the middle region of the brain is selected
-  - random transformations `t` are applied sequentially with `p(t)=0.5` to get 2 views of the same sample:
-    - resized crop
-    - erasing
-    - horizontal flip
-
-
-- Training of a classifier blocks:
-  - ConvNeXt Tiny CNN model serves as a feature extractor and is not trained
-  - training sets of ADNI3, ADNI2, AIBL, NIFD
-  - 1,000 epochs
-  - a batch size of 32
-  - features dimension from ConvNeXt Tiny CNN model: 768
-  - classifier block that is trained: normalisation layer, flat operation, linear layer
-
-- Feature maps of 22 convolutional layers (subject ADNI002S0729 diagnosed with AD, session M60):
-![Architecture](./images/feature_maps.gif)
-
-- Evaluation results:
-  - `CN` vs `AD` vs `BV` vs `MCI` over 3 learning trials using test sets of ADNI3, ADNI2, AIBL, NIFD: 
-    - MCC is 0.42+/-0.005; Recall is 0.69+/-0.004; Precision is 0.56+/-0.006
-    - Confusion matrix:
-    ![Architecture](./images/cm.png)
-  - `CN` vs `AD` using the independent dataset OASIS: 
-    - MCC is 0.03; Recall is 0.14; Precision is 0.26
-
-## Next steps
-- ADNI GO for the independent evaluation
-- Visualisation of features using t-SNE
-- Visualisation of image regions that constitute the highest impact on the classifier's prediction for one particular sample
-
-## References:
-[1] Dwibedi, D., Aytar, Y., Tompson, J., Sermanet, P., & Zisserman, A. (2021).
-With a Little Help From My Friends: Nearest-Neighbor Contrastive Learning of Visual Representations.
-<em> In Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)</em>, 9588-9597.
-
-[2] Liu, Z., Mao, H., Wu, C.Y., Feichtenhofer, C., Darrell, T., & Xie, S.. (2022). A ConvNet for the 2020s. 
