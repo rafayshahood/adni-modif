@@ -16,13 +16,13 @@ LABEL_AD = "AD"
 # Setup:
 with open('./configuration/configuration.yaml', 'r') as stream:
     settings = yaml.load(stream, yaml.Loader)
-figures_folder = create_folder(settings['working_dir'], "figures/")
+figures_folder = create_folder(settings['working_dir'], "figures2/")
 visual_backbone_ckpt = settings['visualisation']['backbone_checkpoint']
 visual_classifier_ckpt = settings['visualisation']['classifier_checkpoint']
 logs_dir = settings['visualisation']['log_dir']
 device = "cuda" if torch.cuda.is_available() else "cpu"
-sample_cn = get_item(FILE_CN, shift=0)
-sample_ad = get_item(FILE_AD, shift=0)
+sample_cn = get_item(FILE_CN, shift=0, location=device)
+sample_ad = get_item(FILE_AD, shift=0, location=device)
 
 # Plot attributions:
 backbone = get_convnext()
@@ -32,17 +32,18 @@ linear_eval.to(device)
 # linear_eval.eval()
 # output = linear_eval(sample_cn.unsqueeze(0))
 # _, predicted = torch.max(output, 1)
-for i in range(-30, 31, 30):
-    plot_attributions(get_item(file_path=FILE_CN, shift=i), linear_eval, target=0,
+#for i in range(-30, 31, 30):
+for i in range(-30, 31, 5):
+    plot_attributions(get_item(file_path=FILE_CN, shift=i, location=device), linear_eval, target=0,
                       name="attributions_IG_{}_{}".format(LABEL_CN, i),
-                      output_folder=figures_folder)
-    plot_attributions(get_item(file_path=FILE_AD, shift=i), linear_eval, target=1,
+                      output_folder=figures_folder, device=device)
+    plot_attributions(get_item(file_path=FILE_AD, shift=i, location=device), linear_eval, target=1,
                       name="attributions_IG_{}_{}".format(LABEL_AD, i),
-                      output_folder=figures_folder)
+                      output_folder=figures_folder, device=device)
 for i in range(0, 2):
-    plot_attributions(get_item(file_path=FILE_AD, shift=0), linear_eval, target=i,
+    plot_attributions(get_item(file_path=FILE_AD, shift=0, location=device), linear_eval, target=i,
                       name="attributions_IG_comparison_{}_output-{}".format(LABEL_AD, i),
-                      output_folder=figures_folder)
+                      output_folder=figures_folder, device=device)
 
 # Independent evaluation (2 classes, see logs):
 b_acc = [0.8081052702885787, 0.7867271824052748, 0.797108567041503]

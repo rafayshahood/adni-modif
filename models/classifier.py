@@ -14,7 +14,7 @@ from torch.nn import functional as F
 from torch.optim import Adam
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils import data as torch_data
-from torchmetrics import MetricCollection, Accuracy, Precision, Recall, F1, ConfusionMatrix, MatthewsCorrcoef, \
+from torchmetrics import MetricCollection, Accuracy, Precision, Recall, F1Score, ConfusionMatrix, MatthewsCorrCoef, \
     Specificity
 
 from configuration.configuration import Configuration

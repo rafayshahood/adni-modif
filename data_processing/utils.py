@@ -67,14 +67,15 @@ def set_seed(seed):
     cudnn.deterministic = True
 
 
-def get_item(file_path: str, shift: int):
+def get_item(file_path: str, shift: int, location: str="cuda"):
     """
     Gets a coronal slice.
     :param file_path: file path
     :param shift: shift in respect to the middle slice (m), thus a slice m+shift will be selected
+    :param location: "cuda" or "cpu", defaults to "cuda"
     :return: a coronal slice
     """
-    slice_data = torch.load(file_path, map_location="cuda")
+    slice_data = torch.load(file_path, map_location=location)
     slice_data.requires_grad = True
     slice_data = slice_data.squeeze(dim=0)
 

@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import scipy
 import scipy.stats
 import seaborn as sns
 import torch
@@ -285,15 +286,18 @@ class FeatureMap:
             plt.close()
 
 
-def plot_attributions(sample, model, target, name, output_folder):
+def plot_attributions(sample, model, target, name, output_folder, device="cuda"):
     ig = IntegratedGradients(model)
     nt = NoiseTunnel(ig)
     sample = torch.unsqueeze(sample, dim=0)
-    baseline = torch.zeros((1, 1, 179, 169), device="cuda")
-    attributions, delta = nt.attribute(sample, nt_type='smoothgrad', stdevs=0.02, nt_samples=5,
+    baseline = torch.zeros((1, 1, 179, 169), device=device)
+    #attributions, delta = nt.attribute(sample, nt_type='smoothgrad', stdevs=0.02, nt_samples=5,
+    attributions, delta = nt.attribute(sample, nt_type='smoothgrad', stdevs=0.02, nt_samples=20,
+    #attributions, delta = nt.attribute(sample, nt_type='smoothgrad_sq', stdevs=0.02, nt_samples=20,
                                        baselines=baseline, target=target, return_convergence_delta=True)
 
     np_attribution = torch.unsqueeze(torch.squeeze(attributions), dim=2).detach().cpu().numpy()
+    np_attribution = scipy.ndimage.filters.gaussian_filter(np_attribution, sigma=1)  # smooth activity image
     np_sample = torch.unsqueeze(torch.squeeze(sample), dim=2).detach().cpu().numpy()
     fig, ax = visualize_image_attr(np_attribution, np_sample, "blended_heat_map", alpha_overlay=0.5, show_colorbar=True,
                                    sign="all", use_pyplot=False)
