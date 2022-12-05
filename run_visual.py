@@ -8,9 +8,9 @@ from models.nnclr import NNCLR, get_convnext, LOG_IDENTIFIER as NNCLR_LOG_IDENTI
 from visual.Visual import plot_loss_figure, plot_attributions, FeatureMap, \
     search_for_files, mean_confidence_interval, plot_cm_mlxtend
 
-FILE_CN = "/mnt/ssd2/ClinicNET/data/aibl/CAPS/subjects/sub-AIBL98/ses-M00/deeplearning_prepare_data/image_based/t1_linear/sub-AIBL98_ses-M00_T1w_space-MNI152NLin2009cSym_desc-Crop_res-1x1x1_T1w.pt/sub-AIBL98_ses-M00_T1w_space-MNI152NLin2009cSym_desc-Crop_res-1x1x1_T1w.pt"
+FILE_CN = "/mnt/ssd2/ClinicNET/data/aibl/CAPS/subjects/sub-AIBL98/ses-M00/deeplearning_prepare_data/image_based/t1_linear/sub-AIBL98_ses-M00_T1w_space-MNI152NLin2009cSym_desc-Crop_res-1x1x1_T1w.pt"
 LABEL_CN = "CN"
-FILE_AD = "/mnt/ssd2/ClinicNET/data/aibl/CAPS/subjects/sub-AIBL851/ses-M18/deeplearning_prepare_data/image_based/t1_linear/sub-AIBL851_ses-M18_T1w_space-MNI152NLin2009cSym_desc-Crop_res-1x1x1_T1w.pt/sub-AIBL851_ses-M18_T1w_space-MNI152NLin2009cSym_desc-Crop_res-1x1x1_T1w.pt"
+FILE_AD = "/mnt/ssd2/ClinicNET/data/aibl/CAPS/subjects/sub-AIBL851/ses-M18/deeplearning_prepare_data/image_based/t1_linear/sub-AIBL851_ses-M18_T1w_space-MNI152NLin2009cSym_desc-Crop_res-1x1x1_T1w.pt"
 LABEL_AD = "AD"
 
 # Setup:
@@ -20,7 +20,7 @@ figures_folder = create_folder(settings['working_dir'], "figures2/")
 visual_backbone_ckpt = settings['visualisation']['backbone_checkpoint']
 visual_classifier_ckpt = settings['visualisation']['classifier_checkpoint']
 logs_dir = settings['visualisation']['log_dir']
-device = "cuda" if torch.cuda.is_available() else "cpu"
+device = "cpu" #"cuda" if torch.cuda.is_available() else "cpu"
 sample_cn = get_item(FILE_CN, shift=0, location=device)
 sample_ad = get_item(FILE_AD, shift=0, location=device)
 
@@ -34,16 +34,20 @@ linear_eval.to(device)
 # _, predicted = torch.max(output, 1)
 #for i in range(-30, 31, 30):
 for i in range(-30, 31, 5):
-    plot_attributions(get_item(file_path=FILE_CN, shift=i, location=device), linear_eval, target=0,
-                      name="attributions_IG_{}_{}".format(LABEL_CN, i),
-                      output_folder=figures_folder, device=device)
     plot_attributions(get_item(file_path=FILE_AD, shift=i, location=device), linear_eval, target=1,
                       name="attributions_IG_{}_{}".format(LABEL_AD, i),
-                      output_folder=figures_folder, device=device)
+                      output_folder=figures_folder, device=device,
+                      sigma=2.5, alpha=0.6)
+    plot_attributions(get_item(file_path=FILE_CN, shift=i, location=device), linear_eval, target=0,
+                      name="attributions_IG_{}_{}".format(LABEL_CN, i),
+                      output_folder=figures_folder, device=device,
+                      sigma=2.5, alpha=0.6)
+
 for i in range(0, 2):
     plot_attributions(get_item(file_path=FILE_AD, shift=0, location=device), linear_eval, target=i,
                       name="attributions_IG_comparison_{}_output-{}".format(LABEL_AD, i),
-                      output_folder=figures_folder, device=device)
+                      output_folder=figures_folder, device=device,
+                      sigma=2.5, alpha=0.6)
 
 # Independent evaluation (2 classes, see logs):
 b_acc = [0.8081052702885787, 0.7867271824052748, 0.797108567041503]

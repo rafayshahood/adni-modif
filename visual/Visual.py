@@ -286,7 +286,8 @@ class FeatureMap:
             plt.close()
 
 
-def plot_attributions(sample, model, target, name, output_folder, device="cuda"):
+from matplotlib import cm
+def plot_attributions(sample, model, target, name, output_folder, device="cuda", sigma=1.0, alpha=0.5):
     ig = IntegratedGradients(model)
     nt = NoiseTunnel(ig)
     sample = torch.unsqueeze(sample, dim=0)
@@ -297,13 +298,146 @@ def plot_attributions(sample, model, target, name, output_folder, device="cuda")
                                        baselines=baseline, target=target, return_convergence_delta=True)
 
     np_attribution = torch.unsqueeze(torch.squeeze(attributions), dim=2).detach().cpu().numpy()
-    np_attribution = scipy.ndimage.filters.gaussian_filter(np_attribution, sigma=1)  # smooth activity image
+    np_attribution = scipy.ndimage.filters.gaussian_filter(np_attribution, sigma=sigma)  # smooth activity image
     np_sample = torch.unsqueeze(torch.squeeze(sample), dim=2).detach().cpu().numpy()
-    fig, ax = visualize_image_attr(np_attribution, np_sample, "blended_heat_map", alpha_overlay=0.5, show_colorbar=True,
-                                   sign="all", use_pyplot=False)
+
+    fig, ax = plot_overlay_image(np_attribution, np_sample, alpha_overlay=alpha, alpha_threshold=0.2, cmap= None) #cm.get_cmap('RdYlGn_r'))
+    #fig, ax = visualize_image_attr(np_attribution, np_sample, "blended_heat_map", alpha_overlay=alpha, show_colorbar=True,
+    #                               sign="all", use_pyplot=False)
     ax.plot()
     plt.show()
     fig.savefig("{}{}.png".format(output_folder, name), format="png")
+
+
+
+from matplotlib import pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.figure import Figure
+from matplotlib.pyplot import axis, figure
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import warnings
+def plot_overlay_image(attr, original_image, alpha_overlay=0.5, alpha_threshold=0.2, cmap = None, sign = "absolute_value", outlier_perc = 2, show_colorbar = False, use_pyplot = True):
+    plt_fig = Figure(figsize=(6,6))
+    plt_axis = plt_fig.subplots()
+    default_cmap = LinearSegmentedColormap.from_list(
+                "RdWhGn", ["red", "white", "green"]
+            )
+    vmin, vmax = -1, 1
+    if cmap is None:
+        cmap = default_cmap
+
+    # Remove ticks and tick labels from plot.
+    plt_axis.xaxis.set_ticks_position("none")
+    plt_axis.yaxis.set_ticks_position("none")
+    plt_axis.set_yticklabels([])
+    plt_axis.set_xticklabels([])
+    plt_axis.grid(b=False)
+    
+    # Choose appropriate signed attributions and normalize.
+    norm_attr = _normalize_image_attr(attr, sign, outlier_perc)
+    plt_axis.imshow(np.mean(original_image, axis=2), cmap="gray")
+
+    # TODO: add heatmap with proper thresholding
+    plt_axis.imshow(overlay2rgba(norm_attr, alpha=alpha_overlay, alpha_threshold=alpha_threshold, overlay_colormap=cmap))
+    heat_map = True
+    #heat_map = plt_axis.imshow(
+    #    norm_attr, cmap=cmap, vmin=vmin, vmax=vmax, alpha=alpha_overlay
+    #)
+
+    # Add colorbar. If given method is not a heatmap and no colormap is relevant,
+    # then a colormap axis is created and hidden. This is necessary for appropriate
+    # alignment when visualizing multiple plots, some with heatmaps and some
+    # without.
+    if show_colorbar:
+        axis_separator = make_axes_locatable(plt_axis)
+        colorbar_axis = axis_separator.append_axes("bottom", size="5%", pad=0.1)
+        if heat_map:
+            plt_fig.colorbar(heat_map, orientation="horizontal", cax=colorbar_axis)
+        else:
+            colorbar_axis.axis("off")
+
+    if use_pyplot:
+        plt.show()
+
+    return plt_fig, plt_axis
+
+
+from PIL import Image
+def overlay2rgba(relevance_map, alpha=0.5, alpha_threshold=0.2, overlay_colormap=None):
+    """
+    Converts the 3D relevance map to RGBA.
+
+    :param numpy.ndarray relevance_map: The 3D relevance map.
+    :param float alpha: the transparency/the value for the alpha channel.
+    :return: the voxel values converted to RGBA data.
+    :rtype: numpy.ndarray
+    """
+    # assume map to be in range of -1..1 with 0 for hidden content
+    alpha_mask = np.zeros_like(relevance_map)
+    alpha_mask[np.abs(relevance_map) > alpha_threshold] = alpha  # final transparency of visible content
+    relevance_map = relevance_map / 2 + 0.5  # range 0-1 float
+    ovl = np.uint8(overlay_colormap(relevance_map) * 255)  # cm translates range 0 - 255 uint to rgba array
+    ovl[:, :, 3] = np.uint8(alpha_mask * 255)          #ovl[:, :, 3]              # replace alpha channel (fourth dim) with calculated values
+    ret = Image.fromarray(ovl)
+   
+    return ret
+
+
+class VisualizeSign:
+    positive = 1
+    absolute_value = 2
+    negative = 3
+    all = 4
+
+
+def _prepare_image(attr_visual):
+    return np.clip(attr_visual.astype(int), 0, 255)
+
+
+def _normalize_scale(attr, scale_factor):
+    assert scale_factor != 0, "Cannot normalize by scale factor = 0"
+    if abs(scale_factor) < 1e-5:
+        warnings.warn(
+            "Attempting to normalize by value approximately 0, visualized results"
+            "may be misleading. This likely means that attribution values are all"
+            "close to 0."
+        )
+    attr_norm = attr / scale_factor
+    return np.clip(attr_norm, -1, 1)
+
+
+def _cumulative_sum_threshold(values, percentile):
+    # given values should be non-negative
+    assert percentile >= 0 and percentile <= 100, (
+        "Percentile for thresholding must be " "between 0 and 100 inclusive."
+    )
+    sorted_vals = np.sort(values.flatten())
+    cum_sums = np.cumsum(sorted_vals)
+    threshold_id = np.where(cum_sums >= cum_sums[-1] * 0.01 * percentile)[0][0]
+    return sorted_vals[threshold_id]
+
+
+def _normalize_image_attr(attr, sign, outlier_perc = 2):
+    attr_combined = np.sum(attr, axis=2)
+    # Choose appropriate signed values and rescale, removing given outlier percentage.
+    #if VisualizeSign[sign] == VisualizeSign.all:
+    threshold = _cumulative_sum_threshold(np.abs(attr_combined), 100 - outlier_perc)
+    #elif VisualizeSign[sign] == VisualizeSign.positive:
+    #    attr_combined = (attr_combined > 0) * attr_combined
+    #    threshold = _cumulative_sum_threshold(attr_combined, 100 - outlier_perc)
+    #elif VisualizeSign[sign] == VisualizeSign.negative:
+    #    attr_combined = (attr_combined < 0) * attr_combined
+    #    threshold = -1 * _cumulative_sum_threshold(
+    #        np.abs(attr_combined), 100 - outlier_perc
+    #    )
+    #elif VisualizeSign[sign] == VisualizeSign.absolute_value:
+    #    attr_combined = np.abs(attr_combined)
+    #    threshold = _cumulative_sum_threshold(attr_combined, 100 - outlier_perc)
+    #else:
+    #    raise AssertionError("Visualize Sign type is not valid.")
+    return _normalize_scale(attr_combined, threshold)
+
+
 
 
 def search_for_files(search_dir: str, file_identifier: str):
