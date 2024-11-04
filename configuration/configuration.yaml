@@ -1,108 +1,81 @@
 # General settings
-working_dir : "/mnt/ssd2/ClinicNET/work_dir/"
-id: v3  #  configuration version
+working_dir: "/Users/rafayshahood/Desktop/adn/clinic-net/output"  # Set the output directory
+id: "v3"  # Configuration version
 seeds:
   - 32
-  - 42
-  - 52
-dry_run: False  # used for testing purposes; if True, then only one training iteration is performed
+dry_run: False  # For testing; if True, only one training iteration is performed
 
-# Data settings:
+# Data settings
 data:
-  slices_range: 120  # if m is the middle slice of the coronal plane, then the slices in rage [m-slices_range/2; m+slices_range/2] are the candidates for selection
-  quality_check: True  # if True, then samples will be filtered based on MMSE values
-  col_names: # the only columns that will be considered when reading clinical/tabular data
+  slices_range: 120  # Slices range around the middle coronal plane
+  quality_check: False  # Set to False if no mmse data is available
+  col_names:  # Columns from the CSV that will be used
     - participant_id
     - session_id
     - diagnosis
     - age
     - sex
-    - mmse
-  valid_dataset_names: # valid names for datasets
-    - NIFD
-    - ADNI3
-    - ADNI2
-    - AIBL
-    - OASIS
-    - PPMI
+  valid_dataset_names:  # Include the ADNI1 dataset name
+    - ADNI1
   diagnoses_info:
     valid_diagnoses:
-      - CON
-      - BV
-      - SV
-      - PNFA
+      - CN
       - AD
       - MCI
+    control_labels:  # Encoded as 'CN'
       - CN
-      - LMCI
-      - EMCI
-      - SMC
-    control_labels: # will be encoded as 'CN'
-      - CON
-      - CN
-    ftd_labels:
-      - BV
-      - SV
-      - PNFA
-    merge_ftd: False  # will be encoded as 'FTD'
-    ad_labels: # will be encoded as 'AD'
+    ad_labels:  # Encoded as 'AD'
       - AD
+    mci_labels:  # Encoded as 'MCI'
+      - MCI
 
-
-# NNCLR settings:
+# NNCLR settings
 nnclr:
-  checkpoint_resume: ''  # if provided a model will be loaded and trained further. The same model is used for all seeds!
-  epochs: 1000
-  save_nepoch: 10  # a model will be saved every nth epoch
+  checkpoint_resume: ""  # Path to checkpoint if resuming training
+  epochs: 2
+  save_nepoch: 2  # Save model every nth epoch
   batch_size: 180
-  trainable_layers: 0  # only the last n nn.Sequential blocks and other layers afterwards will be trained (0 means that all layers will be trained)
+  trainable_layers: 0  # Number of trainable layers; 0 means all are trainable
   data:
-    # A list of the paths to the CAPS directories:
     - caps_directories:
-        - '/mnt/ssd2/ClinicNET/data/nifd/CAPS/'
-        - '/mnt/ssd2/ClinicNET/data/adni3/CAPS/'
-        - '/mnt/ssd2/ClinicNET/data/adni2/CAPS/'
-
-    # A list of the paths to the TSV files containing targets/labels:
+        - "/Users/rafayshahood/Desktop/adn/clinic-net/ADNI"  # Dataset path
     - info_data_files:
-        - '/mnt/ssd2/ClinicNET/data/nifd/info_data.tsv'
-        - '/mnt/ssd2/ClinicNET/data/adni3/info_data.tsv'
-        - '/mnt/ssd2/ClinicNET/data/adni2/info_data.tsv'
+        - "/Users/rafayshahood/Desktop/adn/clinic-net/ADNI/ADNI1_002_S data file.csv"  # CSV file path
 
-
-# Setting for the classifier:
+# Classifier settings
 classifier:
-  epochs: 100
+  epochs: 2
   batch_size: 64
-  replicas: 100  # for each sample n randomly selected slices are provided to predict a diagnosis
-  replicas_extraction: 1  # extract sample's features from n random slices
-  comparison: True  # If True, then a second model will be trained without freezing the backbone. Otherwise, only a classification block on top of the frozen backbone will be trained
-  eval_labels:  # only samples with these labels will be selected
+  replicas: 100  # Number of randomly selected slices per sample for diagnosis prediction
+  replicas_extraction: 1  # Extract features from random slices
+  comparison: True  # If True, trains a model with and without freezing the backbone
+  eval_labels:  # Labels used for evaluation
     - CN
     - AD
+  data:
+    - caps_directories:
+        - "/Users/rafayshahood/Desktop/adn/clinic-net/ADNI"
+    - info_data_files:
+        - "/Users/rafayshahood/Desktop/adn/clinic-net/ADNI/ADNI1_002_S data file.csv"
 
-# Setting for the evaluation of the model on the independent datasets:
+# Independent evaluation settings
 independent_evaluation:
   seed: 1
-  checkpoint_load: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/cls_seed-32_freeze-True_conf_id-v3'
+  checkpoint_load: "/Users/rafayshahood/Desktop/adn/clinic-net/output/checkpoints/classifier_seed-32_freeze-True_conf_id-v3.pt"
   batch_size: 128
-  replicas: 100  # for each sample n randomly selected slices are provided to predict a diagnosis
-  replicas_extraction: 1  # extract sample's features from n random slices
+  replicas: 100
+  replicas_extraction: 1
   data:
-    # A list of the paths to the CAPS directories:
     - caps_directories:
-        - '/mnt/ssd2/ClinicNET/data/aibl/CAPS/'
-    # A list of the paths to the TSV files containing targets/labels:
+        - "/Users/rafayshahood/Desktop/adn/clinic-net/adni2"
     - info_data_files:
-        - '/mnt/ssd2/ClinicNET/data/aibl/info_data.tsv'
+        - "/Users/rafayshahood/Desktop/adn/clinic-net/adni2/ADNI1_Complete_1Yr_1.5T_11_02_2024.csv"  # CSV file path
   eval_labels:
     - CN
     - AD
 
-# Setting for the visualisation
+# Visualization settings
 visualisation:
-  backbone_checkpoint: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/nnclr_seed-32_conf_id-v3'
-  classifier_checkpoint: '/mnt/ssd2/ClinicNET/work_dir/checkpoints/cls_seed-32_freeze-True_conf_id-v3'
-  log_dir: '/mnt/ssd2/ClinicNET/work_dir/logs/'
-
-
+  backbone_checkpoint: "/Users/rafayshahood/Desktop/adn/clinic-net/output/checkpoints/nnclr_seed-32_conf_id-v3"
+  classifier_checkpoint: "/Users/rafayshahood/Desktop/adn/clinic-net/output/checkpoints/classifier_seed-32_freeze-True_conf_id-v3.pt"
+  log_dir: "/Users/rafayshahood/Desktop/adn/clinic-net/output/logs/"

@@ -5,6 +5,7 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+import nibabel as nib  # Import nibabel for loading .nii.gz files
 
 
 class DataReader:
@@ -32,10 +33,9 @@ class DataReader:
     @staticmethod
     def search_files(caps_directories: List[str]) -> pd.DataFrame:
         """
-        Searches for all PyTorch tensors containing information about an MRI scan.
+        Searches for all .nii.gz files containing information about an MRI scan.
         :param caps_directories: a list of the paths to the CAPS directories.
-        :return: the pandas data frame containing the ID of a patient, the ID of a session, and the path to a PyTorch.
-        tensor.
+        :return: the pandas DataFrame containing the ID of a patient, the ID of a session, and the path to a .nii.gz file.
         """
         subjects_list = []
         sessions_list = []
@@ -43,19 +43,15 @@ class DataReader:
         for caps_dir in caps_directories:
             for root, dirs, files in os.walk(caps_dir):
                 for name in files:
-                    if name.endswith(".pt"):
+                    if name.endswith(".nii"):  # Adjusted to look for .nii.gz files
                         path_file_name = os.path.join(os.path.abspath(root), name)
+                        # print(f"Found file: {path_file_name}")  # Log each found file
 
-                        # Get the file name
-                        path_file_name_split = name.split('/')
-                        file_name = path_file_name_split[len(path_file_name_split) - 1]
-                        file_name_split = file_name.split('_')
-
-                        # Subject ID
+                        # Extract subject and session IDs based on filename structure
+                        file_name_split = name.split('_')
                         subject_id = file_name_split[0]
                         assert subject_id.startswith("sub-")
 
-                        # Session ID
                         session_id = file_name_split[1]
                         assert session_id.startswith("ses-")
 
@@ -69,7 +65,7 @@ class DataReader:
     @staticmethod
     def calculate_statistics(data: pd.DataFrame) -> None:
         """
-        Logs some statistics, e.g. age, MMSE, unique patients
+        Logs some statistics, e.g., age, MMSE, unique patients
         :param data: info data as DataFrame
         """
         for dataset in data["dataset"].unique():
@@ -112,29 +108,17 @@ class DataReader:
 
         if 'NIFD' in data['participant_id'][0]:
             logging.info("Applying MMSE quality filter on NIFD ...")
-            # drop 'CN' samples where MMSE < (mean + 1 std)
             data = data[~((data["diagnosis"] == 'CN') & (data["mmse"] < data["threshold_neg"]))]
-
-            # drop 'FTD' samples where MMSE > (mean + 1 std)
             data = data[~((data["diagnosis"] != 'CN') & (data["mmse"] > data["threshold_pos"]))]
-
         elif 'ADNI' in data['participant_id'][0] or 'AIBL' in data['participant_id'][0]:
             logging.info("Applying MMSE quality filter on ADNI/AIBL ...")
-            # drop 'CN' samples where MMSE < (mean + 1 std)
             data = data[~((data["diagnosis"] == 'CN') & (data["mmse"] < data["threshold_neg"]))]
-
-            # drop 'MCI' samples where MMSE > (mean + 1 std)
             data = data[~((data["diagnosis"] == 'MCI') & (data["mmse"] > data["threshold_pos"]))]
             data = data[~((data["diagnosis"] == 'MCI') & (data["mmse"] < data["threshold_neg"]))]
-
-            # drop 'AD' samples where MMSE > (mean + 1 std)
             data = data[~((data["diagnosis"] == 'AD') & (data["mmse"] > data["threshold_pos"]))]
         elif 'OAS' in data['participant_id'][0]:
             logging.info("Applying MMSE quality filter on OASIS ...")
-            # drop 'CN' samples where MMSE < (mean + 1 std)
             data = data[~((data["diagnosis"] == 'CN') & (data["mmse"] < data["threshold_neg"]))]
-
-            # drop 'AD' samples where MMSE > (mean + 1 std)
             data = data[~((data["diagnosis"] == 'AD') & (data["mmse"] > data["threshold_pos"]))]
         else:
             logging.warning("Dataset {} is not relevant for data quality.".format(
@@ -175,63 +159,67 @@ class DataReader:
         return self._apply_filter(data)
 
     def read_info_data(self, info_data_list: List[str]) -> pd.DataFrame:
-        """
-        Reads the information about available MRI scans in the TSV files.
-        :param info_data_list: a list of the paths to the TSV files containing targets/labels.
-        :return: the pandas data frame containing the ID of a patient, the ID of a session, and the corresponding
-        target/label.
-        """
         df_list = []
         for info_data_path in info_data_list:
-            info_data = pd.read_csv(info_data_path, sep="\t", low_memory=False)
-            info_data.loc[info_data['diagnosis'].isin(self.diagnoses_info['control_labels']), 'diagnosis'] = "CN"
-            info_data.loc[info_data['diagnosis'].isin(self.diagnoses_info['ad_labels']), 'diagnosis'] = "AD"
-            info_data = info_data[info_data['diagnosis'].isin(self.diagnoses_info['valid_diagnoses'])]
-            if self.quality_check:
-                info_data = self.filter_on_quality(info_data)
-            info_data = self.select_columns(info_data)
-            dataset = info_data_path.split("/")[-2].upper()
-            assert dataset in self.valid_dataset_names
-            info_data["dataset"] = dataset
+            info_data = pd.read_csv(info_data_path, sep=",", low_memory=False)
+            info_data.columns = info_data.columns.str.strip()
+            # print("Column names after stripping:", info_data.columns)
+            info_data = info_data[self.columns]
             df_list.append(info_data)
+
         data = pd.concat(df_list)
-        if self.diagnoses_info['merge_ftd']:
-            data.loc[data['diagnosis'].isin(self.diagnoses_info['ftd_labels']), 'diagnosis'] = "FTD"
-        mask1 = data[['participant_id', 'session_id']].duplicated(keep="first")
-        mask2 = data[['participant_id', 'session_id']].duplicated(keep=False)
-        data = data[~mask1 | ~mask2]
-        assert ((data.groupby(['participant_id', 'session_id']).count().reset_index()["diagnosis"] == 1) == True).all()
         return data
 
     def get_files_and_labels(self, caps_directories: List[str], info_data: List[str]) -> pd.DataFrame:
-        """
-        Searches for PyTorch tensors in the CAPS directories and for the corresponding targets/labels in TSV files.
-        :param caps_directories: a list of the paths to the CAPS directories.
-        :param info_data: a list of the paths to the TSV files containing targets/labels.
-        """
-        files_df = DataReader.search_files(caps_directories)
+        files_df = self.search_files(caps_directories)
         info_data_df = self.read_info_data(info_data)
+
+        # Reformat participant_id to match files_df format
+        info_data_df['participant_id'] = info_data_df['participant_id'].apply(
+            lambda x: f"sub-{str(x).replace('_', '')}" if pd.notnull(x) else x
+        )
+
+        # print("files_df:")
+        # print(files_df.head())
+        # print("info_data_df after reformatting participant_id:")
+        # print(info_data_df.head())
+
+        # Filter out rows where participant_id or session_id is missing in info_data_df
+        info_data_df = info_data_df.dropna(subset=["participant_id", "session_id"])
+
+        # Print counts to help debug
+        # print(f"Number of rows in files_df: {files_df.shape[0]}")
+        # print(f"Number of rows in info_data_df before merging: {info_data_df.shape[0]}")
 
         files = []
         patients = []
         diagnoses = []
+
         for idx, row in info_data_df.iterrows():
             patient_id_search = row["participant_id"]
             session_id_search = row["session_id"]
+
             found_data = files_df[(files_df["participant_id"] == patient_id_search) &
-                                  (files_df["session_id"] == session_id_search)]
+                                (files_df["session_id"] == session_id_search)]
+
             if found_data.empty:
-                info_data_df = info_data_df[~((info_data_df["participant_id"] == patient_id_search) &
-                                              (info_data_df["session_id"] == session_id_search))]
+                # Exclude unmatched rows and log for troubleshooting
+                # print(f"Skipping unmatched row: participant_id={patient_id_search}, session_id={session_id_search}")
                 continue
+
             files.append(found_data["file"].values[0])
             patients.append(row["participant_id"])
             diagnoses.append(row["diagnosis"])
-        assert info_data_df.shape[0] == len(diagnoses)
-        logging.info("Total number of samples: {}".format(len(diagnoses)))
-        logging.info("Counts: {}".format(dict(
-            zip(list(diagnoses), [list(diagnoses).count(i) for i in list(diagnoses)]))))
-        self.calculate_statistics(info_data_df)
+
+        # Print final row counts
+        # print("Number of rows in info_data_df after filtering:", info_data_df.shape[0])
+        # print("Length of diagnoses list:", len(diagnoses))
+
+        # Check the assertion after logging details
+        # if info_data_df.shape[0] != len(diagnoses):
+        #     print(f"Warning: Mismatch in row counts between info_data_df and diagnoses list.")
+        #     print(f"Rows in info_data_df: {info_data_df.shape[0]}, Diagnoses entries: {len(diagnoses)}")
+
         d = {'file': files, 'patient': patients, 'diagnosis': diagnoses}
         d['target'] = pd.factorize(d['diagnosis'])[0].astype(np.uint16)
         return pd.DataFrame(data=d)

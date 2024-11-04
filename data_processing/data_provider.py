@@ -5,12 +5,13 @@ import torch
 from torch.utils.data import Dataset
 from torchvision.transforms import transforms
 
+import nibabel as nib  # Ensure nibabel is imported
 from data_processing.utils import Mode
 
 
 def get_transform_functions():
     """
-    Creates random transform functions that will be applied to input data
+    Creates random transform functions that will be applied to input data.
     :return: transform functions
     """
     rnd_resizedcrop = transforms.RandomResizedCrop(size=(179, 169),
@@ -56,7 +57,7 @@ class DataProvider(Dataset):
         """
         return len(self.targets)
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, str]:
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, int]:
         """
         Returns two different views of one slice and the corresponding target/label.
         :param idx: the ID of a sample.
@@ -65,27 +66,29 @@ class DataProvider(Dataset):
         label = self.targets[idx]
         filename = self.files[idx]
 
-        slice_data = torch.load(filename)
-        slice_data = slice_data.squeeze(dim=0)
+        try:
+            # Load the 3D MRI data
+            nifti_data = nib.load(filename)
+            volume_data = nifti_data.get_fdata()
 
-        middle_point = int(slice_data.shape[1] / 2)  # (m) idx of the middle slice across one plane
+            # Select a 2D slice, e.g., the middle slice along one axis
+            middle_slice_idx = volume_data.shape[2] // 2  # Selecting the middle slice in the depth dimension
+            slice_data = volume_data[:, :, middle_slice_idx]  # Shape: [height, width]
 
-        if self.middle_slice:
-            reference_point = middle_point
+            # Convert to a tensor with an added channel dimension for grayscale
+            slice_data = torch.tensor(slice_data, dtype=torch.float32).unsqueeze(0)  # Shape: [1, height, width]
+
+        except Exception as e:
+            # print(f"Error loading file {filename}: {e}")
+            raise
+
+        # Apply transformations for data augmentation during training
+        if self.mode == Mode.training:
+            view_one = self.transform_func(slice_data)
+            view_two = self.transform_func(slice_data)
         else:
-            # a random value within the range [m-n, m+n]
-            reference_point = random.randrange(middle_point - int(self.slices_range / 2),
-                                               middle_point + int(self.slices_range / 2))
-
-        # view: select coronal slice, correct view by rotating, put channels first
-        coronal_view = torch.rot90(slice_data[:, reference_point, :].unsqueeze(dim=0), k=1, dims=(1, 2))
-
-        # apply transformations
-        if self.mode == "training":
-            view_one = self.transform_func(coronal_view)
-            view_two = self.transform_func(coronal_view)
-        else:
-            view_one = coronal_view
-            view_two = coronal_view
+            # During evaluation, no augmentation is applied; same slice returned for both views
+            view_one = slice_data
+            view_two = slice_data
 
         return view_one, view_two, label
