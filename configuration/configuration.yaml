@@ -1,5 +1,5 @@
 # General settings
-working_dir: "/Users/rafayshahood/Desktop/adn/clinic-net/output"  # Set the output directory
+working_dir: "./output"  # Set the output directory
 id: "v3"  # Configuration version
 seeds:
   - 32
@@ -38,9 +38,9 @@ nnclr:
   trainable_layers: 0  # Number of trainable layers; 0 means all are trainable
   data:
     - caps_directories:
-        - "/Users/rafayshahood/Desktop/adn/clinic-net/ADNI"  # Dataset path
+        - "./adni"  # Dataset path
     - info_data_files:
-        - "/Users/rafayshahood/Desktop/adn/clinic-net/ADNI/ADNI1_002_S data file.csv"  # CSV file path
+        - "./adni/ADNI1_002_S data file.csv"  # CSV file path
 
 # Classifier settings
 classifier:
@@ -54,28 +54,28 @@ classifier:
     - AD
   data:
     - caps_directories:
-        - "/Users/rafayshahood/Desktop/adn/clinic-net/ADNI"
+        - "./adni"
     - info_data_files:
-        - "/Users/rafayshahood/Desktop/adn/clinic-net/ADNI/ADNI1_002_S data file.csv"
+        - "./adni/ADNI1_002_S data file.csv"
 
 # Independent evaluation settings
 independent_evaluation:
   seed: 1
-  checkpoint_load: "/Users/rafayshahood/Desktop/adn/clinic-net/output/checkpoints/classifier_seed-32_freeze-True_conf_id-v3.pt"
+  checkpoint_load: "./output/checkpoints/classifier_seed-32_freeze-True_conf_id-v3.pt"
   batch_size: 128
   replicas: 100
   replicas_extraction: 1
   data:
     - caps_directories:
-        - "/Users/rafayshahood/Desktop/adn/clinic-net/adni2"
+        - "./adni2"
     - info_data_files:
-        - "/Users/rafayshahood/Desktop/adn/clinic-net/adni2/ADNI1_Complete_1Yr_1.5T_11_02_2024.csv"  # CSV file path
+        - "./adni2/ADNI1_Complete_1Yr_1.5T_11_02_2024.csv"  # CSV file path
   eval_labels:
     - CN
     - AD
 
 # Visualization settings
 visualisation:
-  backbone_checkpoint: "/Users/rafayshahood/Desktop/adn/clinic-net/output/checkpoints/nnclr_seed-32_conf_id-v3"
-  classifier_checkpoint: "/Users/rafayshahood/Desktop/adn/clinic-net/output/checkpoints/classifier_seed-32_freeze-True_conf_id-v3.pt"
-  log_dir: "/Users/rafayshahood/Desktop/adn/clinic-net/output/logs/"
+  backbone_checkpoint: "./output/checkpoints/nnclr_seed-32_conf_id-v3"
+  classifier_checkpoint: "./output/checkpoints/classifier_seed-32_freeze-True_conf_id-v3.pt"
+  log_dir: "./output/logs/"
